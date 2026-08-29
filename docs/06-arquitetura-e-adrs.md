@@ -45,7 +45,7 @@ Possíveis soluções
 - Serviço de Inspeções;
 - Serviço de Notificações.
 
-## Estrutura de pastas
+### Estrutura de pastas
 
 src/
 │
@@ -91,6 +91,10 @@ src/
 │   └── infrastructure/
 │
 └── main.ts
+
+### Camadas da aplicação
+
+![Diagrama de Arquitetura](./diagrams/diagrama-de-arquitetura.png)
 
 ## JavaScript Avançado e TypeScript
 

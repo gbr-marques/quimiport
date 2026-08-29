@@ -9,12 +9,7 @@
 
 ### Fluxo de status da carga
 
-```
-[Registrada] ──► [Em Validação Documental] ──► [Em Inspeção] ──► [Liberada] ──► [Em Movimentação] ──► [Finalizada]
-     │                       │                        │
-     ▼                       ▼                        ▼
-[Cancelada]            [Bloqueada]              [Bloqueada]
-```
+![Diagrama de Fluxo](./diagrams/diagrama_de_fluxo.webp)
 
 - "Bloqueada" pode ocorrer a partir de qualquer estado ativo e retorna ao estado anterior após desbloqueio.
 - "Cancelada" e "Finalizada" são estados terminais.

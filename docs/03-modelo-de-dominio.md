@@ -1,5 +1,7 @@
 # Modelo de domínio
 
+![Diagrama de Domínio](./diagrams/diagrama-de-dominio.jpg)
+
 ## Entidades
 
 ### Produto Químico
