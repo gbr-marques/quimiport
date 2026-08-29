@@ -1,0 +1,174 @@
+# Decisões arquiteturais
+
+## Arquitetura adotada
+
+A **Arquitetura Hexagonal**, que atua com POrts e Adapters, tem o objetivo de separar as responsabilidades da aplicação, reduzir o acoplamento entre as camadas e facilitar sua evolução ao longo das próximas etapas do projeto. Por esse motivo, esse foi o modelo de arquitetura adotado para desenvolvermos o QuimiPort.
+
+## Benefícios e tradeoffs
+
+Nesse cenário, as regras de negócio serão concentradas no domínio da aplicação. Isso garante que as regras permaneçam independentes da infraestrutura utilizada no sistema. COmo tradeoff, isso exige um esforço maior ao modelar e definir essas abstrações no início do desenvolvimento.
+
+## Evolução do projeto
+
+No caso da arquitetura Hexagonal, cada módulo pode ser incluído como um novo ccaso de uso no núcleo da aplicação, reutilizando entidades e regras de negócio já existentes. Desse modo, é possível adicionar novas funcionalidades sem alterar o domínio da aplicação
+
+### Backend
+
+Possíveis soluções:
+
+- Node.js com NestJS
+- Spring Boot (Java)
+- ASP .NET Core (.NET)
+
+### Frontend
+
+Possíveis soluções:
+
+- React
+- Angular
+- Vue.js
+
+### Mobile
+
+Possíveis soluções
+
+- React Native
+- Flutter
+
+### Microsserviços
+
+À medida que o sistema crescer, alguns contextos poderão ser extraídos para serviços independentes, como:
+
+- Serviço de Gestão de Produtos Químicos;
+- Serviço de Gestão de Cargas;
+- Serviço de Documentação;
+- Serviço de Inspeções;
+- Serviço de Notificações.
+
+## Estrutura de pastas
+
+src/
+│
+├── modules/
+│   │
+│   ├── cargas/
+│   │   ├── domain/
+│   │   │   ├── entities/
+│   │   │   ├── value-objects/
+│   │   │   ├── aggregates/
+│   │   │   ├── services/
+│   │   │   ├── errors/
+│   │   │   └── events/
+│   │   │
+│   │   ├── application/
+│   │   │   ├── use-cases/
+│   │   │   ├── dto/
+│   │   │   └── ports/
+│   │   │
+│   │   └── infrastructure/
+│   │       ├── adapters/
+│   │       │   ├── inbound/
+│   │       │   └── outbound/
+│   │       └── persistence/
+│   │
+│   ├── produtos/
+│   │   ├── domain/
+│   │   ├── application/
+│   │   └── infrastructure/
+│   │
+│   ├── inspecoes/
+│   │   ├── domain/
+│   │   ├── application/
+│   │   └── infrastructure/
+│   │
+│   └── documentacao/
+│       ├── domain/
+│       ├── application/
+│       └── infrastructure/
+│
+├── shared/
+│   ├── domain/
+│   └── infrastructure/
+│
+└── main.ts
+
+## JavaScript Avançado e TypeScript
+
+O QuimiPort utilizará TypeScript e recursos modernos do JavaScript para garantir uma aplicação mais segura, organizada e preparada para evolução. A tipagem forte será utilizada para representar os conceitos do domínio de forma clara, enquanto interfaces, classes e tipos específicos ajudarão a manter contratos bem definidos entre os componentes.
+
+### Tipagem 
+
+O TypeScript será utilizado para representar explicitamente os conceitos do domínio, evitando o uso excessivo de tipos genéricos. Isso contribui para reduzir erros, facilitar a manutenção e tornar os contratos da aplicação mais claros.
+
+```ts
+interface CargaQuimica {
+  id: string;
+  quantidade: Quantidade;
+  status: StatusCarga;
+}
+```
+
+### Interfaces
+
+As interfaces serão utilizadas principalmente para definir contratos entre componentes, especialmente nas **Ports** da Arquitetura Hexagonal. Dessa forma, a aplicação não ficará diretamente acoplada às implementações de infraestrutura.
+
+```ts
+interface CargaRepository {
+  buscarPorId(id: string): Promise<CargaQuimica>;
+  salvar(carga: CargaQuimica): Promise<void>;
+}
+```
+
+### Classes
+
+As classes serão utilizadas quando um objeto possuir comportamento e regras próprias, principalmente em entidades, agregados e Value Objets do domínio. Dessa forma, as regras de negócio podem ser protegidas pelo próprio domínio.
+
+Por exemplo, em vez de alterar diretamente o status de uma carga, a entidade poderá controlar a operação:
+
+```ts
+carga.liberar();
+```
+
+### Enums e tipos para status e classificações
+
+Valores que possuem um conjunto previamente definido serão representados por tipos específicos, evitando valores arbitrários e facilitando a validação durante o desenvolvimento.
+
+```ts
+type StatusCarga =
+  | 'REGISTRADA'
+  | 'BLOQUEADA'
+  | 'LIBERADA'
+  | 'CANCELADA';
+```
+
+Essa abordagem será aplicada principalmente a status, classificações de risco e outros estados controlados pelo domínio.
+
+### Funções puras para validações
+
+Validações que não dependem de estado externo poderão ser implementadas como funções puras. Isso torna seu comportamento previsível e facilita a criação de testes unitários.
+
+```ts
+function quantidadeValida(valor: number): boolean {
+  return valor > 0;
+}
+```
+
+### Módulos ES6+
+
+A aplicação será organizada utilizando módulos ES6+, com `import` e `export`, mantendo cada parte do sistema com responsabilidades bem definidas. Essa organização contribui para o baixo acoplamento e facilita a reutilização dos componentes.
+
+### Async/Await
+
+O `async/await` será utilizado em operações assíncronas, principalmente em futuras integrações com APIs, bancos de dados e outros serviços externos. A abordagem facilita a leitura do código e o tratamento de erros em operações assíncronas.
+
+### Generics
+
+Generics serão utilizados quando houver necessidade de criar estruturas reutilizáveis que mantenham a tipagem dos dados. Seu uso será aplicado de forma pontual, evitando complexidade desnecessária.
+
+### Tratamento de erros
+
+Os erros serão tratados de forma consistente, diferenciando erros relacionados às regras de negócio de falhas de infraestrutura ou integração. No domínio, regras inválidas poderão gerar erros específicos, enquanto as camadas externas serão responsáveis por traduzir esses erros para respostas adequadas.
+
+### Contratos e tipos compartilhados
+
+Os contratos e tipos utilizados por diferentes partes da aplicação serão organizados de forma centralizada e controlada, evitando duplicação e divergência entre componentes. Essa organização será especialmente importante para as interfaces das Ports e para os contratos de comunicação entre módulos.
