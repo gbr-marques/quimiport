@@ -47,6 +47,7 @@ Possíveis soluções
 
 ### Estrutura de pastas
 
+```
 src/
 │
 ├── modules/
@@ -91,6 +92,7 @@ src/
 │   └── infrastructure/
 │
 └── main.ts
+```
 
 ### Camadas da aplicação
 
