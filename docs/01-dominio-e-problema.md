@@ -42,3 +42,14 @@ Gestão de cargas químicas num ambiente portuário, assim como processos relaci
 - **Gestão de Inspeções:** registro e acompanhamento das inspeções realizadas nas cargas.
 - **Histórico e Rastreabilidade:** registro das alterações e do ciclo de vida das cargas.
 - **Gestão de Produtos Químicos:** cadastro e manutenção dos produtos que poderão ser associados às cargas.
+
+## 2. Usuários do sistema
+
+| Perfil | Papel |
+|--------|-------|
+| Operador Portuário | Registra cargas, atualiza status operacional |
+| Responsável Técnico | Responde tecnicamente pelas cargas; solicita e conduz inspeções; libera e bloqueia cargas |
+| Analista de Documentação | Valida documentação obrigatória das cargas |
+| Analista de Qualidade | Consulta cargas e históricos, audita conformidade |
+| Gestor Operacional | Acompanha o fluxo geral das cargas e resultados |
+| Administrador do Sistema | Cadastra e mantém produtos químicos e responsáveis técnicos |
