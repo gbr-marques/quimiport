@@ -6,6 +6,19 @@ O Porto de Santos é um dos principais pontos de movimentação de cargas do Bra
 
 Uma empresa que atua no controle de cargas químicas precisa organizar melhor o fluxo e logística dessas cargas. Hoje, o registro é feito de forma manual ou descentralizada, dificultando a consulta de informações, o acompanhamento do status e a validação de regras importantes de segurança.
 
+O **QuimiPort** é o sistema que resolve esse problema, permitindo:
+
+- Cadastrar produtos químicos
+- Registrar cargas químicas
+- Associar uma carga a um produto químico
+- Informar classificação de risco
+- Registrar documentação obrigatória
+- Definir responsável técnico
+- Acompanhar o status da carga
+- Bloquear ou liberar uma carga conforme regras de negócio
+- Validar regras de segurança
+- Consultar cargas e histórico
+
 ## Domínio
 
 > É a área de conhecimento, negócio ou atividade que representa o contexto no qual o sistema está inserido. O domínio engloba os conceitos, processos, regras e comportamentos relevantes para compreender e solucionar o problema de negócio.
