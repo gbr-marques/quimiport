@@ -14,7 +14,7 @@ Repositório destinado à entrega do Tech Challenge do curso de pós-graduação
 
 ## Integrantes do grupo
 
-Gabriel Marques Silva - RM374482
-Ionara Ferreira de Lima - RM374697
-Matheus Felipe Santos Pereira - RM376292
-Wender Santos Guimarães - RM374718
+- Gabriel Marques Silva - RM374482
+- Ionara Ferreira de Lima - RM374697
+- Matheus Felipe Santos Pereira - RM376292
+- Wender Santos Guimarães - RM374718
