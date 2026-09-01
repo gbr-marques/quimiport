@@ -1,11 +1,5 @@
 # Casos de Uso, Histórias de Usuário e Requisitos Não Funcionais
 
-**Sistema:** Gestão de Cargas Químicas Portuárias  
-**Contexto:** Tech Challenge Fase 1 — Pós Tech Full Stack Development  
-**Referência:** operações logísticas do Porto de Santos
-
-Este documento reúne os épicos (EP001–EP008), as histórias de usuário (US001–US027) no formato BDD com seus critérios de aceite, e os requisitos não funcionais (RNF001–RNF005) que se aplicam a elas.
-
 As regras de negócio (RN001–RN020) que essas histórias implementam estão em um documento separado: [`QuimiPort - Regras de Negocio.md`](./05-regras-de-negocio.md), com a matriz de rastreabilidade RN → US.
 
 Ver também o [Diagrama de Casos de Uso](./diagrams/diagrama_de_caso_de_uso.webp), que mapeia visualmente atores → casos de uso a partir das histórias abaixo.

@@ -1,4 +1,4 @@
-# Decisões arquiteturais
+# Arquitetura e ADRs
 
 ## Arquitetura adotada
 
