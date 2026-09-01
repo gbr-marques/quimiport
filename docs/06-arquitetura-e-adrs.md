@@ -14,26 +14,15 @@ No caso da arquitetura Hexagonal, cada módulo pode ser incluído como um novo c
 
 ### Backend
 
-Possíveis soluções:
-
-- Node.js com NestJS
-- Spring Boot (Java)
-- ASP .NET Core (.NET)
+O backend será desenvolvido utilizando Node.js com NestJS, adotando uma estrutura modular que facilite a separação de responsabilidades e a evolução da aplicação. O NestJS será utilizado para estruturar a camada de aplicação e as integrações necessárias, mantendo as regras de negócio isoladas conforme a Arquitetura Hexagonal.
 
 ### Frontend
 
-Possíveis soluções:
-
-- React
-- Angular
-- Vue.js
+O frontend será desenvolvido utilizando React, permitindo a construção de uma interface modular e componentizada. A aplicação consumirá os recursos disponibilizados pelo backend, mantendo a camada de apresentação desacoplada das regras de negócio do domínio.
 
 ### Mobile
 
-Possíveis soluções
-
-- React Native
-- Flutter
+A aplicação mobile será desenvolvida utilizando React Native, possibilitando o reaproveitamento de conhecimentos e conceitos utilizados no frontend web. Essa escolha também permite que a solução seja expandida para dispositivos móveis sem alterar o núcleo de regras de negócio da aplicação.
 
 ### Microsserviços
 
