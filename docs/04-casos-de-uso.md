@@ -351,7 +351,7 @@ E exibe "Tipo de arquivo não permitido"
 **Cenário 01 — Documentação completa e vigente**
 Dado que uma carga possui todos os documentos obrigatórios com validade vigente
 Quando executo "Validar Documentação"
-Então o sistema muda status para "Documentação Válida"
+Então o sistema muda status para "Liberada"
 E libera para a próxima etapa
 E registra evento no histórico
 

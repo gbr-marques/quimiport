@@ -13,6 +13,6 @@
 | **Liberação** | Ato formal que autoriza a carga a entrar em movimentação |
 | **Bloqueio** | Ato de suspender a carga por suspeita ou risco identificado |
 | **Movimentação** | Deslocamento físico da carga no ambiente portuário |
-| **Status da Carga** | Estado atual da carga na máquina de estados (Registrada, Em Validação Documental, Em Inspeção, Documentação Válida, Liberada, Em Movimentação, Bloqueada, Cancelada, Finalizada) |
+| **Status da Carga** | Estado atual da carga na máquina de estados (Registrada, Em Validação Documental, Em Inspeção, Liberada, Em Movimentação, Bloqueada, Cancelada, Finalizada) |
 | **Evento** | Registro imutável de uma ação ou transição realizada sobre uma carga |
 | **Documentação Obrigatória** | Conjunto de documentos exigidos para a carga ser liberada |
