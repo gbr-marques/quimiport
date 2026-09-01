@@ -1,5 +1,25 @@
+# Casos de Uso, Histórias de Usuário e Requisitos Não Funcionais
 
-# Casos de uso (BDD)
+**Sistema:** Gestão de Cargas Químicas Portuárias  
+**Contexto:** Tech Challenge Fase 1 — Pós Tech Full Stack Development  
+**Referência:** operações logísticas do Porto de Santos
+
+Este documento reúne os épicos (EP001–EP008), as histórias de usuário (US001–US027) no formato BDD com seus critérios de aceite, e os requisitos não funcionais (RNF001–RNF005) que se aplicam a elas.
+
+As regras de negócio (RN001–RN020) que essas histórias implementam estão em um documento separado: [`QuimiPort - Regras de Negocio.md`](./05-regras-de-negocio.md), com a matriz de rastreabilidade RN → US.
+
+Ver também o [Diagrama de Casos de Uso](./diagrams/diagrama_de_caso_de_uso.webp), que mapeia visualmente atores → casos de uso a partir das histórias abaixo.
+
+---
+
+## Sumário
+
+1. Épicos e Histórias de Usuário (BDD)
+2. Requisitos Não Funcionais
+
+---
+
+## 1. Épicos e Histórias de Usuário (BDD)
 
 ### Convenções
 
@@ -9,7 +29,12 @@
 
 ### Fluxo de status da carga
 
-![Diagrama de Fluxo](./diagrams/diagrama_de_fluxo.webp)
+```
+[Registrada] ──► [Em Validação Documental] ──► [Em Inspeção] ──► [Liberada] ──► [Em Movimentação] ──► [Finalizada]
+     │                       │                        │
+     ▼                       ▼                        ▼
+[Cancelada]            [Bloqueada]              [Bloqueada]
+```
 
 - "Bloqueada" pode ocorrer a partir de qualquer estado ativo e retorna ao estado anterior após desbloqueio.
 - "Cancelada" e "Finalizada" são estados terminais.
@@ -967,3 +992,87 @@ Então o sistema muda o status para "Ativa"
 E ela volta a aparecer nas opções de cadastro de produtos
 
 **Requisitos não funcionais vinculados:** RNF001, RNF002, RNF005.
+
+---
+
+---
+
+## 2. Requisitos Não Funcionais
+
+Cada requisito não funcional abaixo tem cenário(s) em BDD (Dado/Quando/Então), no mesmo formato usado nas histórias de usuário da seção 1.
+
+### RNF001 — Usabilidade
+Interface responsiva, mensagens de erro em português claro.
+
+**Cenário — Mensagem de erro compreensível**
+Dado que o usuário aciona qualquer ação de cadastro, edição ou transição de status
+Quando uma regra de negócio é violada
+Então o sistema exibe uma mensagem de erro em português claro, indicando o que precisa ser corrigido
+E não expõe códigos técnicos ou stack traces ao usuário final
+
+**Cenário — Responsividade**
+Dado que o usuário acessa o sistema por um dispositivo móvel
+Quando a tela é carregada
+Então o layout se adapta à largura disponível (menu, tabelas, formulários e modais), sem exigir zoom ou rolagem horizontal para operar
+
+**Referenciado por:** US001, US002, US003, US004, US005, US007, US008, US009, US010, US011, US013, US014, US016, US017, US018, US019, US020, US021, US022, US023, US024, US025, US026, US027 (24 casos de uso)
+
+---
+
+### RNF002 — Segurança
+Autenticação obrigatória, autorização por perfil, senhas com hash, HTTPS em todos os ambientes.
+
+**Cenário — Bloqueio de acesso não autenticado**
+Dado que um usuário não autenticado tenta acessar qualquer rota do sistema além do login
+Quando a requisição chega ao backend
+Então o sistema rejeita a requisição e exige autenticação antes de processá-la
+
+**Cenário — Bloqueio por perfil não autorizado**
+Dado que um usuário autenticado tenta executar uma ação fora do seu perfil (matriz da RN020)
+Quando a requisição é processada no domínio/backend
+Então o sistema rejeita a ação, mesmo que a chamada venha direto da API sem passar pela interface
+
+**Referenciado por:** US001, US003, US004, US006, US007, US010, US012, US015, US016, US017, US018, US019, US020, US021, US022, US023, US024, US025, US026, US027 (20 casos de uso)
+
+---
+
+### RNF003 — Performance
+Tempo de resposta médio menor que 500ms para operações simples e menor que 2s para operações compostas.
+
+**Cenário — Operação simples dentro do limite**
+Dado que o usuário executa uma operação simples (ex.: listar produtos, consultar histórico)
+Quando a requisição é processada sob carga normal
+Então o tempo de resposta médio deve ser menor que 500ms
+
+**Cenário — Operação composta dentro do limite**
+Dado que o usuário executa uma operação composta (ex.: liberar carga, com revalidação de documentação e inspeção)
+Quando a requisição é processada sob carga normal
+Então o tempo de resposta médio deve ser menor que 2s
+
+**Referenciado por:** US003, US006, US014 (3 casos de uso)
+
+---
+
+### RNF004 — Manutenibilidade
+Código TypeScript com tipagem forte, arquitetura em camadas (Domain, Application, Infrastructure, Interface), cobertura de testes de pelo menos 80% no domínio.
+
+**Cenário — Nova regra de negócio adicionada ao domínio**
+Dado que uma nova regra de negócio precisa ser implementada
+Quando o código é escrito
+Então ele usa tipagem forte (TypeScript, sem `any` implícito), é posicionado na camada correta (Domain/Application/Infrastructure/Interface) e é coberto por testes unitários
+E a cobertura de testes da camada de domínio não cai abaixo de 80%
+
+**Referenciado por:** transversal ao projeto (arquitetura, código, cobertura de testes) — não vinculado a uma US específica.
+
+---
+
+### RNF005 — Auditabilidade
+Trilha imutável de todos os eventos de mudança de status, com autor, timestamp e motivo quando aplicável.
+
+**Cenário — Registro imutável de evento**
+Dado que ocorre qualquer mudança de status, exclusão lógica ou reativação de um registro
+Quando o evento é persistido no histórico
+Então ele contém autor, timestamp e motivo (quando aplicável pela regra de negócio)
+E esse evento não pode ser editado ou removido posteriormente, nem por administradores (RN011)
+
+**Referenciado por:** US001, US002, US003, US004, US005, US006, US007, US008, US009, US010, US011, US012, US013, US015, US016, US017, US018, US019, US020, US021, US022, US023, US024, US025, US026, US027 (26 casos de uso)

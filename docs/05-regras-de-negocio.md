@@ -1,5 +1,5 @@
 
-## 6. Regras de negócio
+## Regras de negócio
 
 > Regras que definem o limite sistêmico do QuimiPort — transversais a múltiplos casos de uso.
 
