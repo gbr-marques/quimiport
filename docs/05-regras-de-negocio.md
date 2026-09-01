@@ -39,3 +39,11 @@
   | Desbloquear carga química (US013) | Responsável Técnico |
   | Atualizar status operacional / cancelar carga (US004, US005) | Operador Portuário, Responsável Técnico |
   | Consultar cargas por status e histórico da carga (US014, US015) | Todos os perfis (leitura) — Analista de Qualidade e Gestor Operacional em modo somente-auditoria |
+
+## 7. Requisitos não funcionais
+
+- **RNF001 — Usabilidade:** interface responsiva, mensagens de erro em português claro.
+- **RNF002 — Segurança:** autenticação obrigatória, autorização por perfil, senhas com hash, HTTPS em todos os ambientes.
+- **RNF003 — Performance:** tempo de resposta médio menor que 500ms para operações simples e menor que 2s para operações compostas.
+- **RNF004 — Manutenibilidade:** código TypeScript com tipagem forte, arquitetura em camadas (Domain, Application, Infrastructure, Interface), cobertura de testes de pelo menos 80% no domínio.
+- **RNF005 — Auditabilidade:** trilha imutável de todos os eventos de mudança de status, com autor, timestamp e motivo quando aplicável.
