@@ -4,7 +4,7 @@
 
 A **Arquitetura Hexagonal**, que atua com POrts e Adapters, tem o objetivo de separar as responsabilidades da aplicação, reduzir o acoplamento entre as camadas e facilitar sua evolução ao longo das próximas etapas do projeto. Por esse motivo, esse foi o modelo de arquitetura adotado para desenvolvermos o QuimiPort.
 
-## Benefícios e tradeoffs
+### Benefícios e tradeoffs
 
 Nesse cenário, as regras de negócio serão concentradas no domínio da aplicação. Isso garante que as regras permaneçam independentes da infraestrutura utilizada no sistema. COmo tradeoff, isso exige um esforço maior ao modelar e definir essas abstrações no início do desenvolvimento.
 
@@ -34,7 +34,7 @@ A aplicação mobile será desenvolvida utilizando React Native, possibilitando 
 - Serviço de Inspeções;
 - Serviço de Notificações.
 
-### Estrutura de pastas
+## Estrutura de pastas
 
 ```
 src/
@@ -83,11 +83,11 @@ src/
 └── main.ts
 ```
 
-### Camadas da aplicação
+## Camadas da aplicação
 
 ![Diagrama de Arquitetura](./diagrams/diagrama-de-arquitetura.png)
 
-#### Domínio
+### Domínio
 
 Responsável por representar os conceitos e regras centrais do QuimiPort.
 
@@ -102,7 +102,7 @@ Contém:
 
 O domínio não possui dependência de banco de dados, frameworks, APIs externas ou interfaces de usuário.
 
-#### Aplicação
+### Aplicação
 
 Responsável por orquestrar os casos de uso do sistema.
 
@@ -115,11 +115,11 @@ Contém:
 
 A camada de aplicação utiliza o domínio para executar as operações e acessa recursos externos exclusivamente por meio das Ports.
 
-#### Ports
+### Ports
 
 As Ports definem os contratos utilizados para comunicação entre o núcleo da aplicação e o ambiente externo.
 
-##### Inbound Ports
+#### Inbound Ports
 
 Representam os contratos de entrada dos casos de uso.
 
@@ -130,7 +130,7 @@ Exemplos:
 - BloquearCarga;
 - ConsultarCarga.
 
-##### Outbound Ports
+#### Outbound Ports
 
 Representam os contratos necessários para acessar recursos externos.
 
@@ -141,24 +141,24 @@ Exemplos:
 - DocumentoRepository;
 - StorageGateway.
 
-#### Adapters
+### Adapters
 
 Os Adapters implementam a comunicação com tecnologias externas.
 
-##### Adapters de entrada
+#### Adapters de entrada
 
 - Controllers REST;
 - Interfaces de API;
 - Futuramente, aplicações web e mobile.
 
-##### Adapters de saída
+#### Adapters de saída
 
 - PostgreSQL;
 - Serviços de armazenamento de arquivos;
 - APIs externas;
 - Serviços de mensageria, quando necessários.
 
-#### Infraestrutura
+### Infraestrutura
 
 Responsável pelas implementações concretas dos recursos externos e configurações técnicas da aplicação.
 
@@ -244,3 +244,119 @@ Os erros serão tratados de forma consistente, diferenciando erros relacionados 
 ### Contratos e tipos compartilhados
 
 Os contratos e tipos utilizados por diferentes partes da aplicação serão organizados de forma centralizada e controlada, evitando duplicação e divergência entre componentes. Essa organização será especialmente importante para as interfaces das Ports e para os contratos de comunicação entre módulos.
+
+## ADRs (Architecture Decision Record)
+
+### ADR-001 — Adoção da Arquitetura Hexagonal
+
+**Status:** Aceito
+
+#### Contexto
+
+O QuimiPort deverá evoluir ao longo das próximas fases, podendo incorporar diferentes interfaces, integrações e componentes de infraestrutura. É necessário evitar que as regras de negócio fiquem acopladas às tecnologias utilizadas.
+
+#### Decião
+
+Adotar a **Arquitetura Hexagonal (Ports and Adapters)** como arquitetura estrutural da aplicação.
+
+#### Alternativas consideradas
+
+- Arquitetura em camadas tradicional;
+- Clean Architecture;
+- Onion Architecture.
+
+#### Justificativa
+
+A Arquitetura Hexagonal permite manter o domínio isolado e defiir contratos para comunicação com componentes externos, reduzindo o acoplamento entre regras de negócio e infraestrutura.
+
+#### Consequências
+
+**Positivas:**
+- Maior isolamento do domínio;
+- Facilidade para testes unitários;
+- Menor acoplamento com infraestrutura;
+- Facilidade para substituir implementações externas.
+
+**Negativas:**
+- Maior quantidade inicial de abstrações;
+- Necessidade de definir e manter Ports e Adapters.
+
+### ADR-002 — Uso do TypeScript
+
+**Status:** Aceito
+
+#### Contexto
+
+O projeto possui um domínio com entidades, estados, classificações e contratos que precisam ser representados de forma consistente.
+
+#### Decisão
+
+Utilizar **TypeScript** como linguagem principal da aplicação.
+
+#### Alternativas consideradas
+
+- JavaScript;
+- TypeScript.
+
+#### Justificativa
+
+A tipagem estática permite representar os conceitos do domínio com maior segurança e reduzir erros durante o desenvolvimento.
+
+#### Consequências
+
+**Positivas:**
+- Tipagem forte;
+- Melhor manutenção;
+- Contratos explícitos;
+- Maior segurança durante o desenvolvimento.
+
+**Negativas:**
+- Maior complexidade inicial;
+- Necessidade de configuração e compilação.
+
+### ADR-003 — Backend com Node.js e NestJS
+
+**Status:** Aceito
+
+#### Decisão
+
+Utilizar **Node.js com NestJS** para o desenvolvimento do backend.
+
+#### Justificativa
+
+O NestJS fornece uma estrutura modular adequada à separação de responsabilidades definida pela Arquitetura Hexagonal, enquanto o Node.js mantém o ecossistema alinhado ao TypeScript utilizado no projeto.
+
+#### Consequências
+
+**Positivas:**
+- Estrutura modular;
+- Integração com TypeScript;
+- Ecossistema JavaScript;
+- Facilidade de implementação de APIs.
+
+**Negativas:**
+- Adição de abstrações e convenções do framework;
+- Dependência do ecossistema Node.js/NestJS na infraestrutura.
+
+### ADR-004 — Frontend com React
+
+**Status:** Aceito
+
+#### Decisão
+
+Adotar o **React** para o desenvolvimento da aplicação web.
+
+#### Justificativa
+
+O React permite construir uma interface componentizada e manter a camada de apresentação separada do domínio da aplicação.
+
+#### Consequências
+
+**Positivas:**
+- Componentização;
+- Ecossistema consolidado;
+- Facilidade de evolução da interface.
+
+**Negativas:**
+- Dependência do ecossistema React;
+- Verbosidade de código ao compará-lo a frameworks similares
