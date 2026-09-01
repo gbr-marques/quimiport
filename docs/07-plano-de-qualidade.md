@@ -194,7 +194,7 @@ Além de identificar possíveis falhas, os testes ajudam a garantir a consistên
 
 #### Massa de Dados / Fixtures
 
-- **Carga:** ID `CARGA-200` — Status: Aguardando Liberação
+- **Carga:** ID `CARGA-200` — Status: Em inspeção
 - **Documentos:**
   - Licença Ambiental;
   - FISPQ;
