@@ -87,6 +87,83 @@ src/
 
 ![Diagrama de Arquitetura](./diagrams/diagrama-de-arquitetura.png)
 
+#### Domínio
+
+Responsável por representar os conceitos e regras centrais do QuimiPort.
+
+Contém:
+
+- Entidades;
+- Agregados;
+- Value Objects;
+- Regras de negócio;
+- Serviços de domínio;
+- Eventos de domínio, quando aplicável.
+
+O domínio não possui dependência de banco de dados, frameworks, APIs externas ou interfaces de usuário.
+
+#### Aplicação
+
+Responsável por orquestrar os casos de uso do sistema.
+
+Contém:
+
+- Casos de uso;
+- DTOs;
+- Interfaces das Ports;
+- Orquestração das operações.
+
+A camada de aplicação utiliza o domínio para executar as operações e acessa recursos externos exclusivamente por meio das Ports.
+
+#### Ports
+
+As Ports definem os contratos utilizados para comunicação entre o núcleo da aplicação e o ambiente externo.
+
+##### Inbound Ports
+
+Representam os contratos de entrada dos casos de uso.
+
+Exemplos:
+
+- RegistrarCarga;
+- LiberarCarga;
+- BloquearCarga;
+- ConsultarCarga.
+
+##### Outbound Ports
+
+Representam os contratos necessários para acessar recursos externos.
+
+Exemplos:
+
+- CargaRepository;
+- ProdutoRepository;
+- DocumentoRepository;
+- StorageGateway.
+
+#### Adapters
+
+Os Adapters implementam a comunicação com tecnologias externas.
+
+##### Adapters de entrada
+
+- Controllers REST;
+- Interfaces de API;
+- Futuramente, aplicações web e mobile.
+
+##### Adapters de saída
+
+- PostgreSQL;
+- Serviços de armazenamento de arquivos;
+- APIs externas;
+- Serviços de mensageria, quando necessários.
+
+#### Infraestrutura
+
+Responsável pelas implementações concretas dos recursos externos e configurações técnicas da aplicação.
+
+Essa camada não deve conter regras de negócio.
+
 ## JavaScript Avançado e TypeScript
 
 O QuimiPort utilizará TypeScript e recursos modernos do JavaScript para garantir uma aplicação mais segura, organizada e preparada para evolução. A tipagem forte será utilizada para representar os conceitos do domínio de forma clara, enquanto interfaces, classes e tipos específicos ajudarão a manter contratos bem definidos entre os componentes.
