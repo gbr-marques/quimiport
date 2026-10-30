@@ -9,14 +9,20 @@ import {
   tratarErros,
 } from './shared/infrastructure/http/middlewares/tratar-erros';
 import { documentoOpenApi } from './shared/infrastructure/http/openapi';
+import { requestLogger } from './shared/infrastructure/http/middlewares/request-logger';
+import { registrarEventoApi } from './shared/infrastructure/http/registrar-evento-api';
 
 export function criarApp(prisma: PrismaClient): Express {
   const app = express();
 
   app.disable('x-powered-by');
+  app.use(requestLogger);
   app.use(express.json());
 
   app.get('/health', (_req, res) => {
+    registrarEventoApi(res, 'health.checked', 'Health check executado', {
+      status: 'ok',
+    });
     res.json({ status: 'ok' });
   });
 
