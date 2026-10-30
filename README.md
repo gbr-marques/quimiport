@@ -161,6 +161,17 @@ docker exec quimiport-db psql -U quimiport -c "\dt"
 | `docker compose down -v` | — | Para os containers e apaga os dados do banco |
 | `docker compose down -v && docker compose up -d --build` | `npm run docker:reset` | Recria o banco do zero. Necessário após alterar o `schema.sql`, que só é executado com o banco vazio |
 
+## Documentação da API
+
+Com a aplicação rodando (localmente ou com Docker), a documentação fica disponível em:
+
+| Endereço | Conteúdo |
+| --- | --- |
+| [http://localhost:3000/docs](http://localhost:3000/docs) | Swagger UI: lista de endpoints, parâmetros, exemplos de request e response, códigos de erro e regras aplicadas. Permite testar as rotas pelo botão **Try it out** |
+| [http://localhost:3000/openapi.json](http://localhost:3000/openapi.json) | Especificação OpenAPI 3 em JSON, para importar no Postman ou no Insomnia |
+
+A especificação fica em [`src/shared/infrastructure/http/openapi.ts`](./src/shared/infrastructure/http/openapi.ts). Os valores de enum (status, classes de risco, unidades etc.) são importados dos Value Objects do domínio, então a documentação acompanha as regras do código.
+
 ## Principais endpoints
 
 | Recurso | Método e rota | Descrição |
