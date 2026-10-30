@@ -14,7 +14,6 @@
     "start:debug": "tsx watch --inspect src/main.ts",
     "start:prod": "node dist/main.js",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
-    "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk node_modules/jest/bin/jest.js --runInBand",
@@ -22,7 +21,8 @@
     "docker:up": "docker compose up -d --build",
     "docker:down": "docker compose down",
     "docker:reset": "docker compose down -v && docker compose up -d --build",
-    "docker:logs": "docker compose logs -f"
+    "docker:logs": "docker compose logs -f",
+    "test": "jest --verbose"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

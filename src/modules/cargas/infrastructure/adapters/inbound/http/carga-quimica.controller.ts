@@ -3,6 +3,7 @@ import {
   paramsComId,
   validar,
 } from '../../../../../../shared/infrastructure/http/validacao';
+import { registrarEventoApi } from '../../../../../../shared/infrastructure/http/registrar-evento-api';
 import type { AtualizarStatusCarga } from '../../../../application/use-cases/atualizar-status-carga';
 import type { BloquearCarga } from '../../../../application/use-cases/bloquear-carga';
 import type { BuscarCargaQuimica } from '../../../../application/use-cases/buscar-carga-quimica';
@@ -44,19 +45,33 @@ export class CargaQuimicaController {
       registrarCargaQuimicaSchema,
       req.body,
     );
-    res
-      .status(201)
-      .json(await this.casosDeUso.registrar.executar(entrada, autorId));
+    const carga = await this.casosDeUso.registrar.executar(entrada, autorId);
+    registrarEventoApi(res, 'carga.created', 'Carga registrada', {
+      cargaId: carga.id,
+      produtoId: carga.produto.id,
+      quantidade: carga.quantidade,
+      unidadeMedida: carga.unidadeMedida,
+    });
+    res.status(201).json(carga);
   };
 
   listar = async (req: Request, res: Response): Promise<void> => {
     const entrada = validar(listarCargasQuimicasSchema, req.query);
-    res.json(await this.casosDeUso.listar.executar(entrada));
+    const resultado = await this.casosDeUso.listar.executar(entrada);
+    registrarEventoApi(res, 'carga.listed', 'Cargas consultadas', {
+      total: resultado.total,
+      pagina: resultado.pagina,
+    });
+    res.json(resultado);
   };
 
   buscar = async (req: Request, res: Response): Promise<void> => {
     const { id } = validar(paramsComId, req.params);
-    res.json(await this.casosDeUso.buscar.executar(id));
+    const carga = await this.casosDeUso.buscar.executar(id);
+    registrarEventoApi(res, 'carga.retrieved', 'Carga consultada', {
+      cargaId: carga.id,
+    });
+    res.json(carga);
   };
 
   atualizarStatus = async (req: Request, res: Response): Promise<void> => {
@@ -65,26 +80,53 @@ export class CargaQuimicaController {
       atualizarStatusCargaSchema,
       req.body,
     );
-    res.json(
-      await this.casosDeUso.atualizarStatus.executar(id, entrada, autorId),
+    const carga = await this.casosDeUso.atualizarStatus.executar(
+      id,
+      entrada,
+      autorId,
     );
+    registrarEventoApi(
+      res,
+      'carga.status.updated',
+      'Status da carga atualizado',
+      {
+        cargaId: carga.id,
+        status: carga.status,
+      },
+    );
+    res.json(carga);
   };
 
   bloquear = async (req: Request, res: Response): Promise<void> => {
     const { id } = validar(paramsComId, req.params);
     const { autorId, ...entrada } = validar(bloqueioSchema, req.body);
-    res.json(await this.casosDeUso.bloquear.executar(id, entrada, autorId));
+    const carga = await this.casosDeUso.bloquear.executar(id, entrada, autorId);
+    registrarEventoApi(res, 'carga.blocked', 'Carga bloqueada', {
+      cargaId: carga.id,
+      status: carga.status,
+    });
+    res.json(carga);
   };
 
   liberar = async (req: Request, res: Response): Promise<void> => {
     const { id } = validar(paramsComId, req.params);
     const { autorId } = validar(liberarCargaSchema, req.body);
-    res.json(await this.casosDeUso.liberar.executar(id, autorId));
+    const carga = await this.casosDeUso.liberar.executar(id, autorId);
+    registrarEventoApi(res, 'carga.released', 'Carga liberada', {
+      cargaId: carga.id,
+      status: carga.status,
+    });
+    res.json(carga);
   };
 
   cancelar = async (req: Request, res: Response): Promise<void> => {
     const { id } = validar(paramsComId, req.params);
     const { autorId, ...entrada } = validar(cancelamentoSchema, req.body);
-    res.json(await this.casosDeUso.cancelar.executar(id, entrada, autorId));
+    const carga = await this.casosDeUso.cancelar.executar(id, entrada, autorId);
+    registrarEventoApi(res, 'carga.cancelled', 'Carga cancelada', {
+      cargaId: carga.id,
+      status: carga.status,
+    });
+    res.json(carga);
   };
 }
