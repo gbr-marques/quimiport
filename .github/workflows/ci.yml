@@ -1,0 +1,169 @@
+# Pipeline de CI/CD do QuimiPort (Tech Challenge, item 11)
+#
+# 1. qualidade -> instala dependências, valida o schema do Prisma, roda o
+#                 lint, compila e executa os testes unitários com cobertura
+# 2. docker    -> sobe API + PostgreSQL com o docker-compose.yml, espera os
+#                 healthchecks, cria o banco quimiport_test e roda os testes
+#                 e2e e o teste de fumaça
+# 3. publicar  -> (só em push na main) publica a imagem da API no GitHub
+#                 Container Registry. Não há deploy em servidor nesta fase.
+
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Uma nova execução na mesma branch cancela a anterior
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '22'
+
+jobs:
+  qualidade:
+    name: Lint, build e testes
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Validar schema do Prisma
+        run: npx prisma validate
+        env:
+          # O validate só exige que a variável exista; não conecta no banco
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+
+      # Gera os tipos do banco antes do lint e dos testes; sem eles o
+      # TypeScript trata o Prisma como `any` e o lint falha
+      - name: Gerar Prisma Client
+        run: npm run prisma:generate
+
+      - name: Lint (ESLint + Prettier)
+        run: npm run lint:ci
+
+      - name: Build
+        run: npm run build
+
+      # Sem --passWithNoTests: se o Jest não encontrar nenhum *.spec.ts
+      # (ex.: testRegex quebrado), o pipeline falha em vez de passar vazio
+      - name: Testes unitários com cobertura
+        run: npm run test:cov -- --ci
+
+      - name: Publicar relatório de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobertura
+          path: coverage/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  docker:
+    name: Docker e testes de integração
+    runs-on: ubuntu-latest
+    needs: qualidade
+    timeout-minutes: 20
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Validar docker-compose.yml
+        run: docker compose config --quiet
+
+      - name: Subir API e banco (docker compose)
+        run: docker compose up -d --build --wait --wait-timeout 180
+
+      - name: Configurar Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar Prisma Client
+        run: npm run prisma:generate
+
+      # Os testes e2e exigem um banco próprio com sufixo _test e o schema
+      # aplicado, separado do banco usado pela API no teste de fumaça
+      - name: Criar banco de teste (quimiport_test)
+        run: |
+          docker compose exec -T db psql -U quimiport -d quimiport -v ON_ERROR_STOP=1 \
+            -c 'CREATE DATABASE quimiport_test'
+          docker compose exec -T db psql -U quimiport -d quimiport_test -v ON_ERROR_STOP=1 -q \
+            < database/schema.sql
+
+      - name: Testes e2e
+        run: npm run test:e2e -- --ci
+        env:
+          DATABASE_URL_E2E: postgresql://quimiport:quimiport@localhost:5432/quimiport_test?schema=public
+
+      - name: Teste de fumaça (fluxo principal da API)
+        run: npm run test:smoke
+        env:
+          BASE_URL: http://localhost:3000
+
+      - name: Logs dos containers
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Derrubar ambiente
+        if: always()
+        run: docker compose down -v
+
+  publicar:
+    name: Publicar imagem (GHCR)
+    runs-on: ubuntu-latest
+    needs: [qualidade, docker]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Login no GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Definir nome e tags da imagem
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest
+            type=sha,prefix=
+
+      - name: Build e push da imagem
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

@@ -105,9 +105,11 @@ curl http://localhost:3000/health
 | `npm run prisma:generate` | Gera o client do Prisma a partir do `prisma/schema.prisma` |
 | `npm start` | Executa a versão compilada |
 | `npm test` | Executa os testes unitários |
-| `npm run test:e2e` | Executa os testes end-to-end |
+| `npm run test:e2e` | Executa os testes end-to-end (veja [Testes](#testes)) |
 | `npm run test:cov` | Executa os testes com relatório de cobertura |
+| `npm run test:smoke` | Executa o teste de fumaça contra a API em execução |
 | `npm run lint` | Analisa e corrige o código com ESLint |
+| `npm run lint:ci` | Analisa o código sem corrigir, como no pipeline de CI |
 | `npm run format` | Formata o código com Prettier |
 
 ### Rodando via Docker
@@ -212,6 +214,42 @@ POST /cargas-quimicas
 ```
 
 O modelo de dados, a máquina de estados da carga e a divisão das validações entre banco e domínio estão descritos em [Modelagem de dados](./docs/09-modelagem-de-dados.md).
+
+## Testes
+
+| Tipo | Comando | Onde ficam | O que precisa |
+| --- | --- | --- | --- |
+| Unitários | `npm test` (ou `npm run test:cov`, com cobertura em `coverage/`) | `src/**/*.spec.ts` | Nada além das dependências instaladas |
+| Integração (e2e) | `npm run test:e2e` | `test/api/*.e2e-spec.ts` | Um PostgreSQL com um banco de sufixo `_test` e o `database/schema.sql` aplicado |
+| Fumaça | `npm run test:smoke` | `scripts/smoke-test.mjs` | A API em execução (`BASE_URL`, padrão `http://localhost:3000`) |
+
+Os testes e2e usam a URL de `DATABASE_URL_E2E` ou, na falta dela, a `DATABASE_URL` com o sufixo `_test` no nome do banco. Por segurança, recusam qualquer banco que não termine em `_test`. Com o banco do Docker em execução, o banco de teste é criado assim:
+
+```bash
+docker compose exec -T db psql -U quimiport -d quimiport -c "CREATE DATABASE quimiport_test"
+docker compose exec -T db psql -U quimiport -d quimiport_test < database/schema.sql
+npm run test:e2e
+```
+
+O teste de fumaça cadastra um responsável técnico e um produto, registra uma carga e a leva de `REGISTRADA` até `FINALIZADA`. Ele também confere a documentação OpenAPI e as regras RN001, RN003, RN004 e RN010. Cada execução usa dados novos, então pode rodar mais de uma vez no mesmo banco.
+
+## CI/CD com GitHub Actions
+
+O pipeline fica em [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) e roda a cada push e pull request para a `main`. Também pode ser disparado manualmente na aba **Actions** (botão **Run workflow**).
+
+| Job | Etapas |
+| --- | --- |
+| **Lint, build e testes** | `npm ci` → `prisma validate` → lint → build → testes unitários com cobertura (o relatório fica disponível como artefato da execução) |
+| **Docker e testes de integração** | Valida o `docker-compose.yml` → sobe API e PostgreSQL com `docker compose up --wait` (aguarda os healthchecks) → cria o banco `quimiport_test` com o `schema.sql` → testes e2e → teste de fumaça → derruba o ambiente. Em caso de falha, mostra os logs dos containers |
+| **Publicar imagem** | Só em push na `main` e com os dois jobs anteriores aprovados: publica a imagem da API em `ghcr.io/gbr-marques/quimiport` com as tags `latest` e o SHA do commit |
+
+Decisões:
+
+- **Deploy:** não há deploy em servidor nesta fase, como permite o enunciado. A entrega contínua para em uma imagem Docker versionada e pronta para ser executada.
+- **Docker no pipeline:** o mesmo `docker-compose.yml` usado no desenvolvimento local é usado no pipeline, o que valida a containerização a cada alteração.
+- **Lint:** no pipeline o lint roda sem `--fix`, para falhar em vez de corrigir os arquivos silenciosamente.
+- **Testes:** todo arquivo `*.spec.ts` (unitário) e `*.e2e-spec.ts` (integração) é executado automaticamente. Se nenhum teste for encontrado, o pipeline falha.
+- **Banco dos testes e2e:** é separado do banco da API (`quimiport_test`), para os testes não interferirem nos dados do teste de fumaça.
 
 ## Integrantes do grupo
 
