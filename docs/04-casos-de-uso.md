@@ -254,7 +254,7 @@ E exibe "Responsável técnico é obrigatório para toda carga química"
 Dado que existe uma carga em status "Registrada"
 E a documentação já foi anexada
 Quando o Analista de Documentação inicia a validação
-Então o sistema muda status para "Em Validação Documental"
+Então o sistema muda status para "Em Análise"
 E registra evento no histórico
 
 **Critérios de aceite:**
@@ -391,7 +391,7 @@ Dado que uma carga não possui todos os documentos exigidos
 Quando executo "Validar Documentação"
 Então o sistema bloqueia a validação
 E exibe a lista de documentos ausentes
-E o status permanece em "Em Validação Documental"
+E o status permanece em "Em Análise"
 
 **Critérios de aceite:**
 1. Lista explícita dos documentos ausentes.
