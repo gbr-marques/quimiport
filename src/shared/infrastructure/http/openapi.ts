@@ -81,7 +81,7 @@ const exemploCarga = {
 const exemploUsuario = {
   id: UUID_RESPONSAVEL,
   nome: 'Maria Souza',
-  cpf: '529.982.247-25',
+  cpf: '111.444.777-35',
   cargoProfissional: 'RESPONSAVEL_TECNICO',
   dataNascimento: '1990-05-14',
   status: 'ATIVO',
@@ -218,7 +218,7 @@ Qualquer transição fora da tabela retorna **422 \`TRANSICAO_STATUS_INVALIDA\`*
           content: json(ref('CriarUsuarioEntrada'), {
             responsavelTecnico: {
               nome: 'Maria Souza',
-              cpf: '529.982.247-25',
+              cpf: '111.444.777-35',
               cargoProfissional: 'RESPONSAVEL_TECNICO',
               dataNascimento: '1990-05-14',
               senha: 'senhaForte123',
@@ -1175,7 +1175,7 @@ Conforme a especificação GraphQL over HTTP, erros de consulta retornam **200**
           cpf: {
             type: 'string',
             description: 'Com ou sem máscara',
-            example: '529.982.247-25',
+            example: '111.444.777-35',
           },
           cargoProfissional: ref('CargoProfissional'),
           dataNascimento: {
