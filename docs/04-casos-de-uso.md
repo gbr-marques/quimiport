@@ -24,13 +24,15 @@ Ver também o [Diagrama de Casos de Uso](./diagrams/diagrama_de_caso_de_uso.webp
 ### Fluxo de status da carga
 
 ```
-[Registrada] ──► [Em Validação Documental] ──► [Em Inspeção] ──► [Liberada] ──► [Em Movimentação] ──► [Finalizada]
-     │                       │                        │
-     ▼                       ▼                        ▼
-[Cancelada]            [Bloqueada]              [Bloqueada]
+[Registrada] ──► [Em Análise] ──► [Em Inspeção] ──► [Liberada] ──► [Em Movimentação] ──► [Finalizada]
+     │                │             │       │           │
+     ▼                ▼             ▼       │           ▼
+[Cancelada]      [Cancelada]   [Cancelada]  │      [Cancelada]
+                                            ▼
+                                       [Bloqueada] ──► [Cancelada]
 ```
 
-- "Bloqueada" pode ocorrer a partir de qualquer estado ativo e retorna ao estado anterior após desbloqueio.
+- "Bloqueada" só pode ser alcançada a partir de "Em Inspeção". Não há desbloqueio: uma carga bloqueada só pode ser cancelada.
 - "Cancelada" e "Finalizada" são estados terminais.
 
 ---
@@ -513,20 +515,19 @@ E exibe "Carga cancelada não pode ser liberada"
 
 ### US011 — Bloquear carga química
 
-**Eu como** responsável técnico **quero** bloquear uma carga a qualquer momento antes da finalização **para** impedir sua movimentação até que a suspeita seja esclarecida.
+**Eu como** responsável técnico **quero** bloquear uma carga durante a inspeção **para** impedir sua liberação e movimentação quando houver suspeita de irregularidade.
 
 **Cenário 01 — Bloqueio bem-sucedido**
-Dado que existe uma carga em status ativo diferente de "Finalizada" e "Cancelada"
+Dado que existe uma carga em status "Em Inspeção"
 Quando executo "Bloquear Carga" informando motivo obrigatório
 Então o sistema muda status para "Bloqueada"
-E preserva o status anterior para eventual desbloqueio
 E registra evento com autor, timestamp e motivo
 
 **Critérios de aceite:**
 1. Motivo obrigatório.
 2. Autor registrado.
-3. Estado anterior preservado.
-4. Efeito imediato: movimentação é bloqueada.
+3. Efeito imediato: liberação e movimentação são bloqueadas.
+4. A partir de "Bloqueada", a única transição permitida é o cancelamento.
 
 **Cenário 02 — Tentativa de bloquear carga já finalizada**
 Dado que a carga tem status "Finalizada"
@@ -554,31 +555,6 @@ E registra tentativa no log
 2. Log de tentativa com autor.
 
 **Requisitos não funcionais vinculados:** RNF002, RNF005.
-
----
-
-### US013 — Desbloquear carga química
-
-**Eu como** responsável técnico **quero** desbloquear uma carga previamente bloqueada **para** que ela retome o fluxo após a causa do bloqueio ser resolvida.
-
-**Cenário 01 — Desbloqueio bem-sucedido**
-Dado que existe uma carga em status "Bloqueada"
-Quando executo "Desbloquear Carga" informando justificativa obrigatória
-Então o sistema restaura o status anterior ao bloqueio
-E registra evento com autor, timestamp e justificativa
-
-**Critérios de aceite:**
-1. Justificativa obrigatória.
-2. Estado anterior recuperado do evento de bloqueio.
-3. Trilha de auditoria preservada.
-
-**Cenário 02 — Tentativa de desbloqueio sem justificativa**
-Dado que estou desbloqueando uma carga
-Quando não informo justificativa
-Então o sistema bloqueia
-E exibe "Justificativa é obrigatória para desbloqueio"
-
-**Requisitos não funcionais vinculados:** RNF001, RNF005.
 
 ---
 
@@ -623,7 +599,7 @@ Então o sistema exibe estado vazio informativo "Nenhuma carga encontrada com es
 **Cenário 01 — Consulta ao histórico completo**
 Dado que existe uma carga com múltiplas transições e eventos
 Quando acesso "Histórico da carga"
-Então o sistema exibe a timeline cronológica com cada mudança de status, documentos anexados, resultados de inspeção, bloqueios e desbloqueios
+Então o sistema exibe a timeline cronológica com cada mudança de status, documentos anexados, resultados de inspeção, bloqueios e cancelamentos
 E cada evento mostra autor, timestamp e motivo/justificativa
 
 **Critérios de aceite:**
@@ -1009,7 +985,7 @@ Dado que o usuário acessa o sistema por um dispositivo móvel
 Quando a tela é carregada
 Então o layout se adapta à largura disponível (menu, tabelas, formulários e modais), sem exigir zoom ou rolagem horizontal para operar
 
-**Referenciado por:** US001, US002, US003, US004, US005, US007, US008, US009, US010, US011, US013, US014, US016, US017, US018, US019, US020, US021, US022, US023, US024, US025, US026, US027 (24 casos de uso)
+**Referenciado por:** US001, US002, US003, US004, US005, US007, US008, US009, US010, US011, US014, US016, US017, US018, US019, US020, US021, US022, US023, US024, US025, US026, US027 (23 casos de uso)
 
 ---
 
@@ -1069,4 +1045,4 @@ Quando o evento é persistido no histórico
 Então ele contém autor, timestamp e motivo (quando aplicável pela regra de negócio)
 E esse evento não pode ser editado ou removido posteriormente, nem por administradores (RN011)
 
-**Referenciado por:** US001, US002, US003, US004, US005, US006, US007, US008, US009, US010, US011, US012, US013, US015, US016, US017, US018, US019, US020, US021, US022, US023, US024, US025, US026, US027 (26 casos de uso)
+**Referenciado por:** US001, US002, US003, US004, US005, US006, US007, US008, US009, US010, US011, US012, US015, US016, US017, US018, US019, US020, US021, US022, US023, US024, US025, US026, US027 (25 casos de uso)
