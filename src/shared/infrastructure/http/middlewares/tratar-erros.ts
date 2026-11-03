@@ -6,6 +6,7 @@ import {
   ErroRegraNegocio,
   ErroValidacao,
 } from '../../../domain/errors/erro-dominio';
+import { logger } from '../../logging/logger';
 
 function statusDoErro(erro: ErroDominio): number {
   if (erro instanceof ErroValidacao) return 400;
@@ -22,9 +23,28 @@ export const rotaNaoEncontrada: RequestHandler = (req, res) => {
   });
 };
 
-export const tratarErros: ErrorRequestHandler = (erro, _req, res, _next) => {
+export const tratarErros: ErrorRequestHandler = (erro, req, res, _next) => {
+  const contexto = {
+    requestId: res.locals.requestId as unknown,
+    method: req.method,
+    path: req.path,
+  };
+
   if (erro instanceof ErroDominio) {
-    res.status(statusDoErro(erro)).json({
+    const statusCode = statusDoErro(erro);
+    // Erros de validação e de regra de negócio (4xx) são esperados: nível warn
+    logger.warn(
+      {
+        event: 'http.request.rejected',
+        ...contexto,
+        statusCode,
+        codigo: erro.codigo,
+        regra: erro.regra,
+        detalhes: erro.detalhes,
+      },
+      erro.message,
+    );
+    res.status(statusCode).json({
       codigo: erro.codigo,
       mensagem: erro.message,
       regra: erro.regra,
@@ -35,6 +55,15 @@ export const tratarErros: ErrorRequestHandler = (erro, _req, res, _next) => {
 
   // JSON malformado no corpo da requisição
   if (erro instanceof SyntaxError && 'body' in erro) {
+    logger.warn(
+      {
+        event: 'http.request.rejected',
+        ...contexto,
+        statusCode: 400,
+        codigo: 'JSON_INVALIDO',
+      },
+      'Corpo da requisição não é um JSON válido',
+    );
     res.status(400).json({
       codigo: 'JSON_INVALIDO',
       mensagem: 'Corpo da requisição não é um JSON válido',
@@ -42,7 +71,16 @@ export const tratarErros: ErrorRequestHandler = (erro, _req, res, _next) => {
     return;
   }
 
-  console.error(erro);
+  logger.error(
+    {
+      event: 'http.request.failed',
+      ...contexto,
+      statusCode: 500,
+      erro: erro instanceof Error ? erro.message : String(erro),
+      stack: erro instanceof Error ? erro.stack : undefined,
+    },
+    'Erro interno do servidor',
+  );
   res.status(500).json({
     codigo: 'ERRO_INTERNO',
     mensagem: 'Erro interno do servidor',
