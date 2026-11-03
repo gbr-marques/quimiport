@@ -38,6 +38,15 @@
   | Atualizar status operacional / cancelar carga (US004, US005) | Operador Portuário, Responsável Técnico |
   | Consultar cargas por status e histórico da carga (US014, US015) | Todos os perfis (leitura) — Analista de Qualidade e Gestor Operacional em modo somente-auditoria |
 
+- **RN021** — Um produto químico não pode ser cadastrado com status inválido. Os status permitidos são "Ativo" e "Inativo", e o produto é criado como "Ativo" quando o status não é informado.
+- **RN022** — Uma carga química só pode assumir um dos status definidos na máquina de estados: "Registrada", "Em Análise", "Em Inspeção", "Liberada", "Bloqueada", "Em Movimentação", "Finalizada" e "Cancelada".
+- **RN023** — Reservada.
+- **RN024** — Toda carga química é registrada com o status inicial "Registrada".
+- **RN025** — O resultado de uma inspeção deve ser "Aprovada" ou "Reprovada", e uma inspeção reprovada exige motivo.
+- **RN026** — O código de uma carga química é único: não podem existir duas cargas com o mesmo código.
+- **RN027** — Uma carga só pode ser liberada quando atende, ao mesmo tempo, às três condições: (1) está com status "Em Inspeção"; (2) a inspeção mais recente foi aprovada (RN008); (3) possui documentação obrigatória completa e vigente (RN007, RN013). Nesta fase, as condições 2 e 3 são representadas pelo indicador de documentação válida informado no registro da carga.
+- **RN028** — Uma inspeção reprovada bloqueia a carga: o registro da reprovação e a transição para "Bloqueada" ocorrem juntos, com o motivo registrado no histórico.
+
 ## 7. Requisitos não funcionais
 
 - **RNF001 — Usabilidade:** interface responsiva, mensagens de erro em português claro.
