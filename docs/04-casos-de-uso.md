@@ -1,6 +1,6 @@
 # Casos de Uso, Histórias de Usuário e Requisitos Não Funcionais
 
-As regras de negócio (RN001–RN020) que essas histórias implementam estão em um documento separado: [`QuimiPort - Regras de Negocio.md`](./05-regras-de-negocio.md), com a matriz de rastreabilidade RN → US.
+As regras de negócio (RN001–RN028) que essas histórias implementam estão em um documento separado: [`QuimiPort - Regras de Negocio.md`](./05-regras-de-negocio.md), com a matriz de rastreabilidade RN → US.
 
 Ver também o [Diagrama de Casos de Uso](./diagrams/diagrama_de_caso_de_uso.webp), que mapeia visualmente atores → casos de uso a partir das histórias abaixo.
 
@@ -126,6 +126,35 @@ E exibe "Produto químico está inativo e não pode ser usado em novas cargas"
 **Critérios de aceite:**
 1. Produto inativo não aparece em listas de seleção.
 2. Backend também bloqueia (defesa em profundidade).
+
+**Requisitos não funcionais vinculados:** RNF001, RNF005.
+
+---
+
+### US028 — Editar produto químico
+
+**Eu como** administrador do sistema **quero** editar os dados cadastrais de um produto químico **para** corrigir ou atualizar suas informações no catálogo.
+
+**Cenário 01 — Edição bem-sucedida**
+Dado que existe um produto químico no catálogo
+Quando altero nome, descrição, número ONU, classe de risco, grupo de compatibilidade ou estado físico
+E confirmo a edição
+Então o sistema persiste os novos dados
+E registra a data/hora da atualização
+
+**Critérios de aceite:**
+1. As mesmas validações do cadastro se aplicam (RN001, RN002).
+2. O status do produto não muda pela edição; a inativação é feita pela US002.
+3. Cargas já registradas mantêm os dados do produto vigentes no momento do registro (RN012).
+
+**Cenário 02 — Nome duplicado na edição**
+Dado que já existe outro produto ativo com o nome informado
+Quando tento salvar a edição de um produto ativo
+Então o sistema não persiste a alteração
+E exibe mensagem "Já existe produto químico ativo com este nome"
+
+**Critérios de aceite:**
+1. Comparação case-insensitive com trim, como no cadastro.
 
 **Requisitos não funcionais vinculados:** RNF001, RNF005.
 
