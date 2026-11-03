@@ -120,6 +120,59 @@ Dockerfile               # Imagem da API
 docker-compose.yml       # API e PostgreSQL
 ```
 
+## Arquitetura implementada na Fase 2
+
+O diagrama abaixo mostra o caminho de uma requisição pelas camadas da aplicação e os containers em que ela é executada:
+
+```mermaid
+flowchart LR
+    cliente["Cliente HTTP<br/>(Swagger UI, Postman, frontend)"]
+
+    subgraph compose["Docker Compose"]
+        subgraph api["Container quimiport-api (Node.js 22)"]
+            direction LR
+            subgraph entrada["Adapters de entrada"]
+                middlewares["Middlewares<br/>log de requisições e tratamento de erros"]
+                controllers["Controllers REST<br/>validação de formato (Zod)"]
+            end
+            subgraph aplicacao["Aplicação"]
+                casos["Casos de uso"]
+                ports["Ports<br/>repositórios e gateways"]
+            end
+            subgraph dominio["Domínio"]
+                regras["Entidades, agregado CargaQuimica,<br/>Value Objects e máquina de estados"]
+            end
+            subgraph saida["Adapters de saída"]
+                repositorios["Repositórios e gateways Prisma"]
+            end
+        end
+        db[("Container quimiport-db<br/>PostgreSQL 17")]
+    end
+
+    cliente --> middlewares --> controllers --> casos
+    casos --> regras
+    casos --> ports
+    repositorios -. implementa .-> ports
+    repositorios --> db
+```
+
+O pipeline de CI/CD executa as etapas abaixo a cada push ou pull request para a `main`:
+
+```mermaid
+flowchart LR
+    push["Push ou pull request"] --> qualidade
+    subgraph qualidade["Lint, build e testes"]
+        direction TB
+        q1["npm ci e prisma validate"] --> q2["Lint"] --> q3["Build"] --> q4["Testes unitários<br/>com cobertura"]
+    end
+    qualidade --> docker
+    subgraph docker["Docker e testes de integração"]
+        direction TB
+        d1["docker compose up"] --> d2["Banco quimiport_test"] --> d3["Testes e2e"] --> d4["Teste de fumaça"]
+    end
+    docker -- "push na main" --> publicar["Publicar imagem<br/>no GHCR"]
+```
+
 ## Camadas da aplicação
 
 ![Diagrama de Arquitetura](./diagrams/diagrama-de-arquitetura.png)
