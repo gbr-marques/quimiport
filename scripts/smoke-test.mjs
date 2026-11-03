@@ -177,6 +177,22 @@ if (usuario?.id && produto?.id) {
       200,
       (c) => c.status === 'FINALIZADA',
     );
+    verificar(
+      'GraphQL: cargasPorStatus(FINALIZADA) com produto atual',
+      await chamar('POST', '/graphql', {
+        query: `{ cargasPorStatus(status: FINALIZADA, porPagina: 100) {
+          itens { id transicoesPermitidas produtoAtual { id status } }
+        } }`,
+      }),
+      200,
+      (c) =>
+        c.data.cargasPorStatus.itens.some(
+          (item) =>
+            item.id === carga.id &&
+            item.transicoesPermitidas.length === 0 &&
+            item.produtoAtual.id === produto.id,
+        ),
+    );
   }
 
   verificar(
