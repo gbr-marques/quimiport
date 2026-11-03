@@ -99,6 +99,7 @@ src/
 │   ├── config/                    # Variáveis de ambiente
 │   └── infrastructure/
 │       ├── database/              # Instância do Prisma Client
+│       ├── graphql/               # Schema e handler das consultas GraphQL (diferencial)
 │       ├── http/                  # Middlewares, validação, OpenAPI e registro de eventos
 │       └── logging/               # Logger estruturado
 │
@@ -134,6 +135,7 @@ flowchart LR
             subgraph entrada["Adapters de entrada"]
                 middlewares["Middlewares<br/>log de requisições e tratamento de erros"]
                 controllers["Controllers REST<br/>validação de formato (Zod)"]
+                graphql["Endpoint GraphQL<br/>consultas (diferencial)"]
             end
             subgraph aplicacao["Aplicação"]
                 casos["Casos de uso"]
@@ -150,6 +152,7 @@ flowchart LR
     end
 
     cliente --> middlewares --> controllers --> casos
+    middlewares --> graphql --> casos
     casos --> regras
     casos --> ports
     repositorios -. implementa .-> ports
@@ -689,3 +692,36 @@ Os testes unitários validam o domínio e os casos de uso sem banco, com reposit
 **Negativas:**
 - Os testes de integração dependem de um PostgreSQL com o schema aplicado;
 - O pipeline leva mais tempo por subir os containers.
+
+### ADR-012 — Consultas GraphQL como diferencial
+
+**Status:** Aceito
+
+#### Contexto
+
+A implementação obrigatória da Fase 2 é uma API REST. Como diferencial opcional, o enunciado permite uma funcionalidade pequena e demonstrativa com GraphQL ou gRPC, sem substituir ou comprometer a API REST.
+
+#### Decisão
+
+Oferecer um endpoint **GraphQL** (`/graphql`) somente de consultas, com `cargasPorStatus` e `produtoQuimico`, utilizando o **graphql-js** para o schema e o **graphql-http** para o handler HTTP. O endpoint é um adapter de entrada que chama os mesmos casos de uso da API REST.
+
+#### Alternativas consideradas
+
+- gRPC, com um método para validar transições de status;
+- Apollo Server;
+- Mutations GraphQL para as operações de carga.
+
+#### Justificativa
+
+O GraphQL atende ao cenário de um painel que precisa, em uma única requisição, das cargas de um status, do produto atual de cada uma e das transições permitidas, escolhendo os campos de cada tela. O gRPC é mais adequado à comunicação entre serviços, que ainda não existe no projeto. O graphql-http é a implementação de referência da especificação GraphQL over HTTP e se integra ao Express sem trazer um framework próprio, como o Apollo Server. As mutations ficaram de fora para manter o escopo limitado e as operações de escrita em um único ponto de entrada (a API REST).
+
+#### Consequências
+
+**Positivas:**
+- Nenhuma regra de negócio duplicada: o adapter reutiliza os casos de uso e os erros de domínio;
+- Enums do schema importados dos Value Objects, como na especificação OpenAPI;
+- O cliente escolhe os campos e evita chamadas adicionais para buscar o produto de cada carga.
+
+**Negativas:**
+- Um segundo ponto de entrada a ser mantido e documentado;
+- Erros de domínio retornam HTTP 200 com o campo `errors`, conforme a especificação GraphQL over HTTP, e não os códigos HTTP da API REST.
