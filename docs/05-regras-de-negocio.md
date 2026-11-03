@@ -6,7 +6,7 @@
 - **RN002** — Um produto químico não pode ser cadastrado sem classe de risco.
 - **RN003** — Um produto químico inativo não pode ser usado em novas cargas químicas. Cargas anteriores permanecem intactas.
 - **RN004** — Uma carga química não pode ser registrada sem produto químico associado, sem quantidade maior que zero, sem classificação de risco e sem responsável técnico.
-- **RN005** — Uma carga bloqueada não pode entrar em movimentação nem ser liberada até que seja formalmente desbloqueada.
+- **RN005** — Uma carga bloqueada não pode entrar em movimentação nem ser liberada. Não há desbloqueio: a única transição permitida a partir de "Bloqueada" é o cancelamento.
 - **RN006** — Uma carga cancelada não pode ser liberada ou modificada — é estado terminal.
 - **RN007** — Uma carga só pode ser liberada se possuir documentação obrigatória completa e vigente.
 - **RN008** — Uma carga em inspeção só transiciona para "Liberada" após inspeção aprovada.
@@ -35,7 +35,6 @@
   | Registrar resultado da inspeção (US009) | Responsável Técnico |
   | Liberar carga química (US010) | Responsável Técnico |
   | Bloquear carga química (US011) | Responsável Técnico |
-  | Desbloquear carga química (US013) | Responsável Técnico |
   | Atualizar status operacional / cancelar carga (US004, US005) | Operador Portuário, Responsável Técnico |
   | Consultar cargas por status e histórico da carga (US014, US015) | Todos os perfis (leitura) — Analista de Qualidade e Gestor Operacional em modo somente-auditoria |
 
