@@ -109,7 +109,7 @@ src/
 └── main.ts                        # Inicialização do servidor
 ```
 
-Os módulos `inspecoes` e `documentacao`, previstos na Fase 1, ainda não foram implementados. Nesta fase, a documentação obrigatória é representada na carga pelo campo `documentacaoValida`, e as tabelas `documentos_carga` e `inspecoes` já existem no banco para a evolução prevista na [Modelagem de dados](./09-modelagem-de-dados.md#12-como-os-dados-poderão-evoluir-nas-próximas-fases).
+Os módulos `inspecoes` e `documentacao`, previstos na Fase 1, ainda não foram implementados. Nesta fase, a documentação obrigatória é representada na carga pelo campo `documentacaoValida`, e as tabelas `documentos_carga` e `inspecoes` já existem no banco para a evolução prevista na [Modelagem de dados](./08-modelagem-de-dados.md#12-como-os-dados-poderão-evoluir-nas-próximas-fases).
 
 Fora do `src/`, o projeto contém:
 
@@ -488,7 +488,7 @@ Utilizar o **PostgreSQL 17** como banco de dados da aplicação.
 
 #### Justificativa
 
-Os dados do QuimiPort têm estrutura fixa e são fortemente relacionados: toda carga referencia um produto e um responsável técnico, e o histórico pertence a uma carga e a um autor. As chaves estrangeiras e as transações ACID garantem no próprio banco a integridade dessas referências e a gravação conjunta da mudança de status e do evento de histórico. A análise completa está na [Modelagem de dados](./09-modelagem-de-dados.md#3-banco-de-dados-escolhido).
+Os dados do QuimiPort têm estrutura fixa e são fortemente relacionados: toda carga referencia um produto e um responsável técnico, e o histórico pertence a uma carga e a um autor. As chaves estrangeiras e as transações ACID garantem no próprio banco a integridade dessas referências e a gravação conjunta da mudança de status e do evento de histórico. A análise completa está na [Modelagem de dados](./08-modelagem-de-dados.md#3-banco-de-dados-escolhido).
 
 #### Consequências
 
