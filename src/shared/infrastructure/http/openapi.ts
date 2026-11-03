@@ -177,6 +177,11 @@ Qualquer transição fora da tabela retorna **422 \`TRANSICAO_STATUS_INVALIDA\`*
       name: 'Cargas químicas',
       description: 'Registro de cargas e controle de status',
     },
+    {
+      name: 'GraphQL',
+      description:
+        'Diferencial: consultas de cargas por status e de produtos químicos',
+    },
   ],
   paths: {
     '/health': {
@@ -1000,6 +1005,113 @@ ${TABELA_TRANSICOES}
             ...ERROS_AUTOR,
           }),
           '500': resposta('ErroInterno'),
+        },
+      },
+    },
+
+    // ----- GraphQL (diferencial) -------------------------------------
+    '/graphql': {
+      post: {
+        tags: ['GraphQL'],
+        summary: 'Executar consulta GraphQL',
+        description: `Endpoint GraphQL somente de consultas, sobre os mesmos casos de uso da API REST. Consultas disponíveis:
+- \`cargasPorStatus(status: StatusCarga!, pagina: Int, porPagina: Int)\`: cargas com o status informado. Cada carga traz \`produto\` (snapshot do registro, RN012), \`produtoAtual\` (produto como está hoje no catálogo) e \`transicoesPermitidas\` (RN010);
+- \`produtoQuimico(id: ID!)\`: produto químico pelo identificador.
+
+Conforme a especificação GraphQL over HTTP, erros de consulta retornam **200** com o campo \`errors\`. Erros de domínio trazem em \`extensions\` o mesmo \`codigo\` e a mesma \`regra\` da API REST. A consulta também pode ser enviada por \`GET /graphql?query=...\`.`,
+        operationId: 'executarGraphql',
+        requestBody: {
+          required: true,
+          content: json(
+            {
+              type: 'object',
+              required: ['query'],
+              properties: {
+                query: { type: 'string' },
+                variables: { type: 'object', nullable: true },
+                operationName: { type: 'string', nullable: true },
+              },
+            },
+            {
+              cargasPorStatus: {
+                query:
+                  '{ cargasPorStatus(status: EM_INSPECAO) { total itens { codigo transicoesPermitidas produto { nome } produtoAtual { nome status } } } }',
+              },
+              produtoQuimico: {
+                query:
+                  'query Produto($id: ID!) { produtoQuimico(id: $id) { nome classeRisco status } }',
+                variables: { id: '6f1c2b0e-8d4a-4c1e-9b7a-2f3d4e5f6a7b' },
+              },
+            },
+          ),
+        },
+        responses: {
+          '200': {
+            description: 'Resultado da consulta, com `data` e/ou `errors`',
+            content: json(
+              {
+                type: 'object',
+                properties: {
+                  data: { type: 'object', nullable: true },
+                  errors: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        message: { type: 'string' },
+                        path: { type: 'array', items: { type: 'string' } },
+                        extensions: {
+                          type: 'object',
+                          properties: {
+                            codigo: { type: 'string' },
+                            regra: { type: 'string' },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                sucesso: {
+                  data: {
+                    cargasPorStatus: {
+                      total: 1,
+                      itens: [
+                        {
+                          codigo: 'CG-2026-0001',
+                          transicoesPermitidas: [
+                            'LIBERADA',
+                            'BLOQUEADA',
+                            'CANCELADA',
+                          ],
+                          produto: { nome: 'Ácido Sulfúrico' },
+                          produtoAtual: {
+                            nome: 'Ácido Sulfúrico',
+                            status: 'INATIVO',
+                          },
+                        },
+                      ],
+                    },
+                  },
+                },
+                produtoInexistente: {
+                  data: null,
+                  errors: [
+                    {
+                      message: 'Produto químico não encontrado',
+                      path: ['produtoQuimico'],
+                      extensions: { codigo: 'PRODUTO_QUIMICO_NAO_ENCONTRADO' },
+                    },
+                  ],
+                },
+              },
+            ),
+          },
+          '400': {
+            description:
+              'Corpo sem `query`, ou consulta inválida quando o cliente envia `Accept: application/graphql-response+json`',
+          },
         },
       },
     },
