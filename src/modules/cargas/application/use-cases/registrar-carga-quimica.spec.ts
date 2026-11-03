@@ -96,11 +96,29 @@ describe('RegistrarCargaQuimica', () => {
   // Rejeita quantidade zero ou negativa.
   it.each([0, -1])(
     'Valida o bloqueio de carga com quantidade inválida.',
+    async (quantidade) => {
+      // Tenta registrar a carga com a quantidade inválida.
+      const { caso, repositorio } = criarCaso();
+
+      // Confere o erro, a regra e que nada foi salvo.
+      await expect(
+        caso.executar({ ...entrada, quantidade }, 'autor-1'),
+      ).rejects.toMatchObject({
+        codigo: 'QUANTIDADE_INVALIDA',
+        regra: 'RN004',
+      });
+      expect(repositorio.registrar.mock.calls).toHaveLength(0);
+    },
+  );
+
+  // Rejeita quantidade acima do limite ou com casas decimais demais.
+  it.each([100_000_000_000, 1.2345])(
+    'Valida o bloqueio de carga com quantidade %s fora do formato.',
     (quantidade) => {
-      // Valida a quantidade diretamente, sem usar dependências externas.
+      // Valida a quantidade diretamente no Value Object.
       expect(() =>
         Quantidade.criar(quantidade, criarUnidadeMedida('KG')),
-      ).toThrow('Quantidade da carga deve ser maior que zero');
+      ).toThrow(expect.objectContaining({ codigo: 'QUANTIDADE_INVALIDA' }));
     },
   );
 
