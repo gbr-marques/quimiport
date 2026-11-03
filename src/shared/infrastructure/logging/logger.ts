@@ -4,6 +4,7 @@ const cores = {
   reset: '\u001b[0m',
   timestamp: '\u001b[36m',
   info: '\u001b[32m',
+  warn: '\u001b[93m',
   error: '\u001b[31m',
   mensagem: '\u001b[96m',
   chave: '\u001b[34m',
@@ -18,18 +19,22 @@ class Logger {
     this.gravar('info', dados, mensagem);
   }
 
+  warn(dados: DadosLog, mensagem: string): void {
+    this.gravar('warn', dados, mensagem);
+  }
+
   error(dados: DadosLog, mensagem: string): void {
     this.gravar('error', dados, mensagem);
   }
 
   private gravar(
-    nivel: 'info' | 'error',
+    nivel: 'info' | 'warn' | 'error',
     dados: DadosLog,
     mensagem: string,
   ): void {
     const usarCores =
       process.env.NO_COLOR === undefined &&
-      (nivel === 'error' ? process.stderr.isTTY : process.stdout.isTTY);
+      (nivel === 'info' ? process.stdout.isTTY : process.stderr.isTTY);
     const data = new Date();
     const timestamp = `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')} ${String(data.getHours()).padStart(2, '0')}:${String(data.getMinutes()).padStart(2, '0')}:${String(data.getSeconds()).padStart(2, '0')}.${String(data.getMilliseconds()).padStart(3, '0')}`;
     const colorir = (texto: string, cor: string): string =>
@@ -56,6 +61,10 @@ class Logger {
 
     if (nivel === 'error') {
       console.error(linha);
+      return;
+    }
+    if (nivel === 'warn') {
+      console.warn(linha);
       return;
     }
 
