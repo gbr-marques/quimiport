@@ -151,4 +151,4 @@ Em atendimento à RNF004, o Jest exige cobertura mínima de 80% (linhas, instru�
 | Cancelamento de carga | `mudanca-status.spec.ts` | `cargas-quimicas.e2e-spec.ts` |
 | Tentativa de movimentar carga bloqueada (RN005) | `mudanca-status.spec.ts` | `cargas-quimicas.e2e-spec.ts` |
 
-Além desses cenários, os testes unitários das entidades e Value Objects (`produto-quimico.spec.ts`, `usuario.spec.ts` e `value-objects.spec.ts`) cobrem a normalização dos dados, a inativação lógica e as validações de CPF, senha, cargo e status.
+Além desses cenários, os testes unitários das entidades e Value Objects (`produto-quimico.spec.ts`, `usuario.spec.ts` e `value-objects.spec.ts`) cobrem a normalização dos dados, a inativação lógica e as validações de CPF, senha, cargo e status. As consultas GraphQL do diferencial são cobertas por `schema.spec.ts` (unitário), `graphql.e2e-spec.ts` (integração) e por uma verificação no teste de fumaça.
