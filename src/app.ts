@@ -8,6 +8,7 @@ import {
   rotaNaoEncontrada,
   tratarErros,
 } from './shared/infrastructure/http/middlewares/tratar-erros';
+import { criarGraphqlHandler } from './shared/infrastructure/graphql/graphql.module';
 import { documentoOpenApi } from './shared/infrastructure/http/openapi';
 import { requestLogger } from './shared/infrastructure/http/middlewares/request-logger';
 import { registrarEventoApi } from './shared/infrastructure/http/registrar-evento-api';
@@ -41,6 +42,9 @@ export function criarApp(prisma: PrismaClient): Express {
   app.use('/usuarios', criarUsuariosRouter(prisma));
   app.use('/produtos-quimicos', criarProdutosQuimicosRouter(prisma));
   app.use('/cargas-quimicas', criarCargasQuimicasRouter(prisma));
+
+  // Diferencial: consultas GraphQL sobre os mesmos casos de uso da API REST
+  app.all('/graphql', criarGraphqlHandler(prisma));
 
   app.use(rotaNaoEncontrada);
   app.use(tratarErros);
