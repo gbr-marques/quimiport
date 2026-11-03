@@ -22,6 +22,7 @@ A equipe de Qualidade define critérios de aceitação, avalia evidências e con
 - RN001-RN003 - Catálogo de Produtos Químicos
 - RN004-RN012 - Ciclo de Vida da Carga Química
 - RN013-RN019 - Documentação Obrigatória
+- RN021-RN028 - Valores Válidos, Unicidade, Inspeção e Liberação
 
 ## Cenários de Teste Planejados
 
@@ -88,9 +89,9 @@ Cada teste executado deve possuir evidência registrada, incluindo identificaç�
 - Tratamento de erros padronizado
 - Módulos ES6+ para organização
 
-### Testes de Integração Futuros
+### Testes de Integração
 
-Os testes de integração futuros devem validar a comunicação entre APIs, serviços e camadas de persistência relacionadas a produtos químicos, cargas, documentos, inspeções e responsáveis técnicos, garantindo consistência entre os módulos que sustentam os fluxos críticos do QuimiPort.
+Os testes de integração validam a comunicação entre a API, os casos de uso e a camada de persistência, chamando os endpoints de produtos químicos e cargas químicas contra um banco PostgreSQL de teste. Nas próximas fases, devem ser estendidos aos documentos, às inspeções e aos responsáveis técnicos, garantindo consistência entre os módulos que sustentam os fluxos críticos do QuimiPort.
 
 
 ### Validação dos Fluxos Principais
@@ -112,3 +113,41 @@ A aprovação desses fluxos deve considerar a execução dos cenários críticos
 - Mocks de produtos, documentos, RTs e cargas
 - Fixtures de cargas completas/incompletas
 - Stubs de inspeção e validação documental
+
+
+## Testes Automatizados Implementados (Fase 2)
+
+### Ferramentas e Execução
+
+| Tipo | Ferramenta | Onde ficam | Comando |
+|---|---|---|---|
+| Unitários | Jest, com repositórios e gateways simulados | `src/**/*.spec.ts` | `npm test` |
+| Integração (e2e) | Jest e Supertest, com banco PostgreSQL de teste (sufixo `_test`) | `test/api/*.e2e-spec.ts` | `npm run test:e2e` |
+| Fumaça | Script Node.js contra a API em execução | `scripts/smoke-test.mjs` | `npm run test:smoke` |
+
+Os três tipos são executados automaticamente pelo pipeline de CI/CD a cada push e pull request para a `main`, conforme descrito no [README](../README.md#cicd-com-github-actions).
+
+### Cobertura Mínima
+
+Em atendimento à RNF004, o Jest exige cobertura mínima de 80% (linhas, instruções, funções e ramificações) na camada de domínio de cada módulo: `cargas`, `produtos` e `usuarios`. Se a cobertura de algum módulo ficar abaixo desse limite, o comando `npm run test:cov` falha e o pipeline é interrompido.
+
+### Cenários Exigidos e Testes Correspondentes
+
+| Cenário | Teste unitário | Teste de integração |
+|---|---|---|
+| Cadastro de produto químico | `criar-produto-quimico.spec.ts` | `produtos-quimicos.e2e-spec.ts` |
+| Bloqueio de cadastro de produto sem nome (RN001) | `criar-produto-quimico.spec.ts` | `produtos-quimicos.e2e-spec.ts` |
+| Bloqueio de cadastro de produto sem classe de risco (RN002) | `criar-produto-quimico.spec.ts` | `produtos-quimicos.e2e-spec.ts` |
+| Bloqueio de cadastro de produto com status inválido (RN021) | `criar-produto-quimico.spec.ts` | `produtos-quimicos.e2e-spec.ts` |
+| Registro de carga química | `registrar-carga-quimica.spec.ts` | `cargas-quimicas.e2e-spec.ts` |
+| Bloqueio de carga com produto inativo (RN003) | `registrar-carga-quimica.spec.ts` | `cargas-quimicas.e2e-spec.ts` |
+| Bloqueio de carga com quantidade menor ou igual a zero (RN004) | `registrar-carga-quimica.spec.ts` | `cargas-quimicas.e2e-spec.ts` |
+| Bloqueio de carga sem produto ou sem responsável técnico (RN004, RN009) | `registrar-carga-quimica.spec.ts` | `cargas-quimicas.e2e-spec.ts` |
+| Bloqueio de liberação sem documentação obrigatória (RN007) | `mudanca-status.spec.ts` | `cargas-quimicas.e2e-spec.ts` |
+| Atualização de status da carga | `mudanca-status.spec.ts` | `cargas-quimicas.e2e-spec.ts` |
+| Validação das transições permitidas (RN010) | `mudanca-status.spec.ts` | `smoke-test.mjs` (fluxo completo até "Finalizada") |
+| Bloqueio das transições proibidas (RN010) | `mudanca-status.spec.ts` | `cargas-quimicas.e2e-spec.ts` |
+| Cancelamento de carga | `mudanca-status.spec.ts` | `cargas-quimicas.e2e-spec.ts` |
+| Tentativa de movimentar carga bloqueada (RN005) | `mudanca-status.spec.ts` | `cargas-quimicas.e2e-spec.ts` |
+
+Além desses cenários, os testes unitários das entidades e Value Objects (`produto-quimico.spec.ts`, `usuario.spec.ts` e `value-objects.spec.ts`) cobrem a normalização dos dados, a inativação lógica e as validações de CPF, senha, cargo e status.
