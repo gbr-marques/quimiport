@@ -34,7 +34,7 @@ Os cenários abaixo traduzem as regras de negócio da seção 4 em casos de test
 | CT-02 | RN002 | US001 | Cadastrar produto químico sem selecionar classificação de risco | Sistema bloqueia o cadastro | Crítica |
 | CT-03 | RN003 | US003 | Registrar carga associando um produto químico inativo | Sistema bloqueia o registro da carga | Crítica |
 | CT-04 | RN004 | US003 | Registrar carga sem produto, sem RT, sem classificação ou com quantidade = 0 | Sistema bloqueia o registro, apontando o(s) campo(s) ausente(s) | Crítica |
-| CT-05 | RN005 | US012 | Tentar liberar ou movimentar uma carga com status "Bloqueada" | Sistema impede a ação até desbloqueio formal | Crítica |
+| CT-05 | RN005 | US012 | Tentar liberar ou movimentar uma carga com status "Bloqueada" | Sistema impede a ação; a carga bloqueada só pode ser cancelada | Crítica |
 | CT-06 | RN006 | US010 | Tentar liberar uma carga com status "Cancelada" | Sistema rejeita por ser estado terminal | Alta |
 | CT-07 | RN007 | US010 | Liberar carga sem documentação obrigatória completa/vigente | Sistema bloqueia a liberação e lista os documentos pendentes | Crítica |
 | CT-08 | RN007 | US010 | Liberar carga com inspeção aprovada e toda a documentação obrigatória completa e vigente | Sistema libera a carga somente com as duas condições satisfeitas (inspeção aprovada + documentação vigente) e registra evento no histórico | Crítica |
@@ -47,7 +47,6 @@ Os cenários abaixo traduzem as regras de negócio da seção 4 em casos de test
 | CT-15 | RN015 / RN017 | US018 | Excluir responsável técnico, risco ou classificação já vinculado a registros ativos | Sistema exige confirmação explícita com contagem de vínculos e realiza exclusão lógica (nunca física) | Média |
 | CT-16 | RN020 | US004 / US010 / US019-US027 | Usuário autenticado com perfil não autorizado tenta executar uma ação fora da sua matriz de permissões (ex.: Operador tentando liberar carga, ou Analista de Qualidade tentando cadastrar produto) | Sistema rejeita a ação no domínio/backend, mesmo via chamada direta à API, independente da interface esconder ou não o botão | Crítica |
 | CT-17 | RN012 | US003 | Registrar carga e, em seguida, alterar o nome/classe/unidade do produto químico no catálogo | A carga já registrada mantém o snapshot dos dados do produto capturados no momento do registro, sem sofrer efeito retroativo da edição no catálogo | Alta |
-| CT-18 | RN005 | US013 | Desbloquear uma carga previamente bloqueada, informando justificativa | Sistema restaura o status anterior ao bloqueio (não um estado fixo), registra evento com autor/timestamp/justificativa e a carga retoma o fluxo normal | Alta |
 
 
 ## Casos de Uso Mais Críticos
@@ -102,7 +101,7 @@ A validação dos fluxos principais deve concentrar-se nos processos de maior ri
 - Validação documental
 - Inspeção
 - Liberação
-- Bloqueio e desbloqueio
+- Bloqueio e cancelamento
 - Movimentação e finalização
 - Documentação obrigatória, atuação do responsável técnico e preservação do histórico imutável de eventos
 A aprovação desses fluxos deve considerar a execução dos cenários críticos, o registro das evidências correspondentes, a ausência de defeitos críticos pendentes e a confirmação de que transições inválidas, cargas bloqueadas ou estados terminais sejam corretamente impedidos pelo sistema.
