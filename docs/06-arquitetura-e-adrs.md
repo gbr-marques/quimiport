@@ -40,6 +40,8 @@ A aplicação mobile será desenvolvida utilizando React Native, possibilitando 
 
 ## Estrutura de pastas
 
+Cada módulo corresponde a um contexto do domínio e é dividido nas camadas de domínio, aplicação e infraestrutura. O módulo `cargas` é o mais completo e serve de referência para os demais:
+
 ```
 src/
 │
@@ -47,44 +49,75 @@ src/
 │   │
 │   ├── cargas/
 │   │   ├── domain/
-│   │   │   ├── entities/
-│   │   │   ├── value-objects/
-│   │   │   ├── aggregates/
-│   │   │   ├── services/
-│   │   │   ├── errors/
-│   │   │   └── events/
+│   │   │   ├── aggregates/        # CargaQuimica (agregado raiz) e máquina de estados
+│   │   │   ├── value-objects/     # StatusCarga, Quantidade, UnidadeMedida
+│   │   │   └── events/            # Eventos do histórico da carga
 │   │   │
+│   │   ├── application/
+│   │   │   ├── use-cases/         # Registrar, listar, buscar, atualizar status, bloquear, liberar, cancelar
+│   │   │   ├── dto/
+│   │   │   └── ports/             # Repositório da carga e gateways de produto e usuário
+│   │   │
+│   │   └── infrastructure/
+│   │       ├── adapters/
+│   │       │   ├── inbound/http/  # Controller e schemas de validação (Zod)
+│   │       │   └── outbound/      # Gateways que consultam produtos e usuários via Prisma
+│   │       ├── persistence/       # Repositório Prisma
+│   │       └── cargas.module.ts   # Composição do módulo e rotas
+│   │
+│   ├── produtos/
+│   │   ├── domain/
+│   │   │   ├── entities/          # ProdutoQuimico
+│   │   │   └── value-objects/     # ClasseRisco, GrupoCompatibilidade, EstadoFisico, StatusProduto
 │   │   ├── application/
 │   │   │   ├── use-cases/
 │   │   │   ├── dto/
 │   │   │   └── ports/
-│   │   │
 │   │   └── infrastructure/
-│   │       ├── adapters/
-│   │       │   ├── inbound/
-│   │       │   └── outbound/
-│   │       └── persistence/
+│   │       ├── adapters/inbound/http/
+│   │       ├── persistence/
+│   │       └── produtos.module.ts
 │   │
-│   ├── produtos/
-│   │   ├── domain/
-│   │   ├── application/
-│   │   └── infrastructure/
-│   │
-│   ├── inspecoes/
-│   │   ├── domain/
-│   │   ├── application/
-│   │   └── infrastructure/
-│   │
-│   └── documentacao/
+│   └── usuarios/
 │       ├── domain/
+│       │   ├── entities/          # Usuario
+│       │   └── value-objects/     # Cpf, Senha, CargoProfissional, StatusUsuario
 │       ├── application/
+│       │   ├── use-cases/
+│       │   ├── dto/
+│       │   └── ports/             # Repositório e hash de senha
 │       └── infrastructure/
+│           ├── adapters/
+│           │   ├── inbound/http/
+│           │   └── outbound/      # Hash de senha com scrypt
+│           ├── persistence/
+│           └── usuarios.module.ts
 │
 ├── shared/
-│   ├── domain/
+│   ├── domain/                    # Erros de domínio e base dos valores enumerados
+│   ├── application/               # Paginação
+│   ├── config/                    # Variáveis de ambiente
 │   └── infrastructure/
+│       ├── database/              # Instância do Prisma Client
+│       ├── http/                  # Middlewares, validação, OpenAPI e registro de eventos
+│       └── logging/               # Logger estruturado
 │
-└── main.ts
+├── app.ts                         # Montagem da aplicação Express
+└── main.ts                        # Inicialização do servidor
+```
+
+Os módulos `inspecoes` e `documentacao`, previstos na Fase 1, ainda não foram implementados. Nesta fase, a documentação obrigatória é representada na carga pelo campo `documentacaoValida`, e as tabelas `documentos_carga` e `inspecoes` já existem no banco para a evolução prevista na [Modelagem de dados](./09-modelagem-de-dados.md#12-como-os-dados-poderão-evoluir-nas-próximas-fases).
+
+Fora do `src/`, o projeto contém:
+
+```
+database/schema.sql      # Script de criação do banco
+prisma/schema.prisma     # Models do Prisma, espelhando o schema.sql
+test/api/                # Testes de integração (e2e) da API
+scripts/smoke-test.mjs   # Teste de fumaça usado no pipeline
+.github/workflows/       # Pipeline de CI/CD
+Dockerfile               # Imagem da API
+docker-compose.yml       # API e PostgreSQL
 ```
 
 ## Camadas da aplicação
@@ -374,3 +407,232 @@ O React permite construir uma interface componentizada e manter a camada de apre
 **Negativas:**
 - Dependência do ecossistema React;
 - Verbosidade de código ao compará-lo a frameworks similares
+
+### ADR-005 — Banco de dados PostgreSQL
+
+**Status:** Aceito
+
+#### Contexto
+
+A Fase 2 exige a persistência de produtos químicos e cargas químicas, com associação entre carga e produto, consultas básicas, atualizações e inativação ou cancelamento lógico. O enunciado permite um banco relacional ou não relacional.
+
+#### Decisão
+
+Utilizar o **PostgreSQL 17** como banco de dados da aplicação.
+
+#### Alternativas consideradas
+
+- MongoDB;
+- MySQL.
+
+#### Justificativa
+
+Os dados do QuimiPort têm estrutura fixa e são fortemente relacionados: toda carga referencia um produto e um responsável técnico, e o histórico pertence a uma carga e a um autor. As chaves estrangeiras e as transações ACID garantem no próprio banco a integridade dessas referências e a gravação conjunta da mudança de status e do evento de histórico. A análise completa está na [Modelagem de dados](./09-modelagem-de-dados.md#3-banco-de-dados-escolhido).
+
+#### Consequências
+
+**Positivas:**
+- Integridade referencial garantida pelo banco;
+- Atomicidade entre a mudança de status e o histórico da carga;
+- Enums, CHECKs e triggers reforçam as regras mais críticas;
+- Novas funcionalidades entram como novas tabelas, sem reestruturar os dados existentes.
+
+**Negativas:**
+- Alterações de estrutura exigem atualizar o script do banco;
+- Menor flexibilidade para dados heterogêneos, caso surjam.
+
+### ADR-006 — Acesso ao banco com Prisma
+
+**Status:** Aceito
+
+#### Contexto
+
+Os repositórios da camada de infraestrutura precisam acessar o PostgreSQL de forma tipada, sem que o domínio e os casos de uso dependam da tecnologia de persistência (ADR-001).
+
+#### Decisão
+
+Utilizar o **Prisma ORM** nos repositórios e gateways de saída. O banco é criado pelo script `database/schema.sql`, e o `prisma/schema.prisma` espelha esse script.
+
+#### Alternativas consideradas
+
+- TypeORM;
+- Knex;
+- Driver `pg` com SQL puro.
+
+#### Justificativa
+
+O Prisma gera um client tipado a partir do schema, o que mantém os repositórios alinhados ao TypeScript (ADR-002). Manter o `schema.sql` como fonte da estrutura permite usar recursos que o Prisma não representa, como CHECKs, índice único parcial e os triggers que tornam o histórico imutável.
+
+#### Consequências
+
+**Positivas:**
+- Consultas tipadas e com autocompletar;
+- Suporte a transações para gravar a carga e o histórico juntos;
+- Prisma restrito à infraestrutura, sem alcançar o domínio.
+
+**Negativas:**
+- Dois arquivos de estrutura (`schema.sql` e `schema.prisma`) que precisam ser mantidos em sincronia;
+- Necessidade de gerar o client antes de compilar e testar.
+
+### ADR-007 — Validação de entrada com Zod e regras no domínio
+
+**Status:** Aceito
+
+#### Contexto
+
+A API recebe dados que precisam ser validados em dois níveis: o formato da requisição (campos obrigatórios, tipos, paginação) e as regras de negócio (classe de risco válida, produto ativo, quantidade positiva, transições de status).
+
+#### Decisão
+
+Utilizar o **Zod** apenas nos adapters HTTP, para validar o formato da requisição. As regras de negócio e a lista de valores permitidos ficam nas entidades, agregados e Value Objects do domínio.
+
+#### Alternativas consideradas
+
+- Validar tudo com Zod;
+- class-validator;
+- Validação manual nos controllers.
+
+#### Justificativa
+
+Separar os dois níveis mantém as regras de negócio em um único lugar, testáveis sem HTTP e sem banco, como prevê a Arquitetura Hexagonal. O Zod fica restrito à borda da aplicação e pode ser substituído sem afetar o domínio.
+
+#### Consequências
+
+**Positivas:**
+- Regras de negócio concentradas e reutilizadas por todos os pontos de entrada;
+- Erros de formato e de regra retornam códigos HTTP distintos (400 e 422);
+- Domínio independente de bibliotecas de validação.
+
+**Negativas:**
+- Alguns campos são verificados nos dois níveis;
+- Necessidade de manter os schemas HTTP alinhados aos DTOs.
+
+### ADR-008 — Logs estruturados
+
+**Status:** Aceito
+
+#### Contexto
+
+A Fase 2 exige uma estratégia inicial de logs que ajude a compreender o funcionamento da API e a identificar problemas, registrando requisições, erros e operações relevantes, como criação de produtos, registro de cargas e alterações de status.
+
+#### Decisão
+
+Utilizar um **logger próprio**, sem dependências externas, que grava cada evento em uma linha com timestamp, nível, mensagem e dados em JSON. Um middleware registra o início e a conclusão de cada requisição, com um `requestId`, e os controllers registram os eventos de negócio com o mesmo `requestId`.
+
+#### Alternativas consideradas
+
+- Pino;
+- Winston;
+- `console.log` sem padronização.
+
+#### Justificativa
+
+O volume de logs desta fase não exige os recursos de uma biblioteca dedicada. O formato estruturado e o `requestId` permitem relacionar a requisição aos eventos de negócio que ela gerou, e a interface do logger permite trocar a implementação por uma biblioteca nas próximas fases.
+
+#### Consequências
+
+**Positivas:**
+- Nenhuma dependência adicional;
+- Logs legíveis no terminal e com dados estruturados;
+- Rastreio de cada requisição pelo `requestId`.
+
+**Negativas:**
+- Sem recursos de bibliotecas dedicadas, como níveis configuráveis e envio para serviços externos;
+- Integração com ferramentas de observabilidade, como Prometheus e Grafana, fica para as próximas fases.
+
+### ADR-009 — Documentação da API com OpenAPI e Swagger
+
+**Status:** Aceito
+
+#### Contexto
+
+A API precisa ser documentada com a lista de endpoints, métodos, parâmetros, exemplos de request e response, códigos de erro e regras aplicadas.
+
+#### Decisão
+
+Descrever a API em uma especificação **OpenAPI 3**, servida em `/openapi.json` e exibida pelo **Swagger UI** em `/docs`.
+
+#### Alternativas consideradas
+
+- Redoc;
+- Collection do Postman ou do Insomnia;
+- Documentação apenas no README.
+
+#### Justificativa
+
+O Swagger UI permite consultar e testar os endpoints no navegador, com a aplicação em execução. A especificação OpenAPI é um padrão aberto, que pode ser importado no Postman e no Insomnia. Os valores de enum da especificação são importados dos Value Objects do domínio, o que mantém a documentação alinhada às regras do código.
+
+#### Consequências
+
+**Positivas:**
+- Documentação interativa disponível junto com a API;
+- Padrão aceito por diversas ferramentas;
+- Enums sincronizados com o domínio.
+
+**Negativas:**
+- A especificação é escrita manualmente e precisa ser atualizada a cada mudança nos endpoints.
+
+### ADR-010 — Containers com Docker e Docker Compose
+
+**Status:** Aceito
+
+#### Contexto
+
+A aplicação deve ser executada de forma padronizada, sem depender da configuração manual do ambiente de cada integrante.
+
+#### Decisão
+
+Utilizar um **Dockerfile multi-stage** para a imagem da API e o **Docker Compose** para subir a API e o PostgreSQL. O banco é criado pelo `schema.sql` na primeira inicialização, e a API só sobe depois que o healthcheck do banco é aprovado.
+
+#### Alternativas consideradas
+
+- Execução apenas local, com Node.js e PostgreSQL instalados na máquina;
+- Imagem de estágio único.
+
+#### Justificativa
+
+O Docker Compose sobe o ambiente completo com um único comando. O build multi-stage compila o projeto em um estágio e copia para a imagem final apenas o código compilado e as dependências de produção, o que reduz o tamanho da imagem. O mesmo `docker-compose.yml` é usado no pipeline de CI (ADR-011).
+
+#### Consequências
+
+**Positivas:**
+- Ambiente idêntico para todos os integrantes e para o pipeline;
+- Imagem final menor e sem ferramentas de desenvolvimento;
+- Healthchecks garantem a ordem de inicialização.
+
+**Negativas:**
+- Exige o Docker instalado;
+- Alterações no `schema.sql` só são aplicadas recriando o volume do banco.
+
+### ADR-011 — Testes com Jest e CI/CD com GitHub Actions
+
+**Status:** Aceito
+
+#### Contexto
+
+As regras de negócio precisam ser validadas por testes automatizados, executados a cada alteração do código, junto com a instalação de dependências, a compilação e a validação do projeto.
+
+#### Decisão
+
+Utilizar o **Jest** para os testes unitários e de integração, o **Supertest** para chamar a API nos testes de integração e o **GitHub Actions** para o pipeline de CI/CD.
+
+#### Alternativas consideradas
+
+- Vitest;
+- Testcontainers para o banco dos testes;
+- GitLab CI.
+
+#### Justificativa
+
+Os testes unitários validam o domínio e os casos de uso sem banco, com repositórios simulados. Os testes de integração percorrem a API com um banco PostgreSQL de teste, separado do banco da aplicação. O GitHub Actions está integrado ao repositório e executa lint, build, testes unitários, testes de integração e um teste de fumaça contra a API em containers. Em push na `main`, o pipeline publica a imagem da API, sem deploy em servidor nesta fase.
+
+#### Consequências
+
+**Positivas:**
+- Regras de negócio validadas a cada push e pull request;
+- Containerização validada pelo pipeline;
+- Imagem da API versionada a cada alteração na `main`.
+
+**Negativas:**
+- Os testes de integração dependem de um PostgreSQL com o schema aplicado;
+- O pipeline leva mais tempo por subir os containers.
