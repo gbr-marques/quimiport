@@ -14,11 +14,13 @@ No caso da arquitetura Hexagonal, cada módulo pode ser incluído como um novo c
 
 ### Backend
 
-Possíveis soluções:
+Possíveis soluções avaliadas na Fase 1:
 
 - Node.js com Express
 - Spring Boot (Java)
 - ASP .NET Core (.NET)
+
+A solução adotada foi Node.js com Express, conforme a [ADR-003](#adr-003--backend-com-nodejs-e-express).
 
 ### Frontend
 
@@ -216,23 +218,26 @@ As Ports definem os contratos utilizados para comunicação entre o núcleo da a
 
 Representam os contratos de entrada dos casos de uso.
 
-Exemplos:
+Implementados como classes de caso de uso, por exemplo:
 
-- RegistrarCarga;
+- RegistrarCargaQuimica;
 - LiberarCarga;
 - BloquearCarga;
-- ConsultarCarga.
+- BuscarCargaQuimica.
 
 #### Outbound Ports
 
 Representam os contratos necessários para acessar recursos externos.
 
-Exemplos:
+Implementados nesta fase:
 
-- CargaRepository;
-- ProdutoRepository;
-- DocumentoRepository;
-- StorageGateway.
+- CargaQuimicaRepository;
+- ProdutoQuimicoRepository;
+- UsuarioRepository;
+- ProdutoQuimicoGateway e UsuarioGateway, usados pelo módulo de cargas para consultar produtos e usuários;
+- HashSenha.
+
+Previstos para as próximas fases: DocumentoRepository e StorageGateway, para o anexo de documentos às cargas.
 
 ### Adapters
 
