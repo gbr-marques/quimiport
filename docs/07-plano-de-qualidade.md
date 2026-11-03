@@ -113,6 +113,7 @@ A aprovação desses fluxos deve considerar a execução dos cenários críticos
 - Mocks de produtos, documentos, RTs e cargas
 - Fixtures de cargas completas/incompletas
 - Stubs de inspeção e validação documental
+- Usuários de teste com CPF válido gerado a cada execução, para que os testes de integração não dependam de dados fixos
 
 
 ## Testes Automatizados Implementados (Fase 2)
