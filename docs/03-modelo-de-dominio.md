@@ -74,7 +74,31 @@ O agregado escolhido é **Carga Química**, e essa escolha protege as seguintes 
 1. Carga não existe sem produto químico ativo associado.
 2. Transições de status seguem a máquina de estados definida.
 3. Nenhuma liberação acontece sem documentação válida e (quando exigido) inspeção aprovada.
-4. Bloqueio impede movimentação em qualquer ponto do fluxo.
+4. Carga bloqueada não entra em movimentação nem é liberada; a única transição permitida a partir do bloqueio é o cancelamento.
 5. Todo evento é registrado no histórico da própria carga (append-only).
 
 Produto Químico e Responsável Técnico são agregados menores (só a si mesmos) — carga referencia esses agregados por identificador, respeitando o princípio DDD de referenciar outros agregados apenas por ID.
+
+## Implementação na Fase 2
+
+O modelo acima foi definido na Fase 1. Na Fase 2, parte dele foi implementada, com as adaptações abaixo.
+
+### Entidades implementadas
+
+| Modelo da Fase 1 | Implementação | Diferenças |
+|---|---|---|
+| Produto Químico | Entidade `ProdutoQuimico` (`src/modules/produtos/domain/entities`) | Atributos `id`, `nome`, `descricao`, `numeroOnu`, `classeRisco`, `grupoCompatibilidade`, `estadoFisico`, `status`, `criadoEm` e `atualizadoEm`. A classe de risco é um valor enumerado, e não uma referência à Classificação de Risco. A unidade de medida passou para a quantidade da carga |
+| Carga Química | Agregado `CargaQuimica` (`src/modules/cargas/domain/aggregates`) | Atributos `id`, `codigo`, `produto` (snapshot com nome, número ONU e classe de risco), `quantidade`, `origem`, `destino`, `responsavelTecnicoId`, `status`, `documentacaoValida`, `dataEntrada`, `criadoEm` e `atualizadoEm`. Documentos e inspeções são representados pelo indicador `documentacaoValida`, e o motivo do bloqueio fica no evento do histórico |
+| Responsável Técnico | Entidade `Usuario` (`src/modules/usuarios/domain/entities`) | O responsável técnico é um usuário ativo com o cargo `RESPONSAVEL_TECNICO`. Atributos `id`, `nome`, `cpf`, `cargoProfissional`, `dataNascimento`, `senhaHash`, `status`, `criadoEm` e `atualizadoEm`. O CPF substitui o CRQ como identificador validado |
+| Evento | `EventoCarga` (`src/modules/cargas/domain/events`) | Atributos `tipo`, `statusAnterior`, `statusNovo`, `motivo`, `autorId` e `ocorridoEm`, gravados de forma imutável na tabela `historico_carga` |
+
+Documento Obrigatório, Risco, Classificação de Risco, Documento da Carga e Inspeção ainda não foram implementados. As tabelas `documentos_carga` e `inspecoes` já existem no banco, conforme a [Modelagem de dados](./09-modelagem-de-dados.md#12-como-os-dados-poderão-evoluir-nas-próximas-fases).
+
+### Value Objects implementados
+
+- **Quantidade** e **UnidadeMedida** — valor maior que zero, com até 3 casas decimais, e unidade (`KG`, `T`, `L`, `M3`);
+- **StatusCarga** — status da máquina de estados e mapa de transições permitidas;
+- **ClasseRisco**, **GrupoCompatibilidade**, **EstadoFisico** e **StatusProduto** — valores enumerados do produto químico;
+- **Cpf**, **Senha**, **CargoProfissional** e **StatusUsuario** — dados do usuário.
+
+CRQ e PeriodoDeValidade ainda não foram implementados.
