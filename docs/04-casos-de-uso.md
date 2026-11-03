@@ -1,6 +1,6 @@
 # Casos de Uso, Histórias de Usuário e Requisitos Não Funcionais
 
-As regras de negócio (RN001–RN028) que essas histórias implementam estão em um documento separado: [`QuimiPort - Regras de Negocio.md`](./05-regras-de-negocio.md), com a matriz de rastreabilidade RN → US.
+As regras de negócio (RN001–RN028) que essas histórias implementam estão em um documento separado: [Regras de negócio](./05-regras-de-negocio.md), com a matriz de perfis autorizados por ação (RN020).
 
 Ver também o [Diagrama de Casos de Uso](./diagrams/diagrama_de_caso_de_uso.webp), que mapeia visualmente atores → casos de uso a partir das histórias abaixo.
 
@@ -18,8 +18,8 @@ Ver também o [Diagrama de Casos de Uso](./diagrams/diagrama_de_caso_de_uso.webp
 ### Convenções
 
 - **US** = User Story (história de usuário)
-- **RN** = Regra de Negócio (transversal, listada na seção 6)
-- **RNF** = Requisito Não Funcional (transversal, listado na seção 7)
+- **RN** = Regra de Negócio (transversal, listada em [Regras de negócio](./05-regras-de-negocio.md))
+- **RNF** = Requisito Não Funcional (transversal, listado na [seção 2](#2-requisitos-não-funcionais) deste documento)
 
 ### Fluxo de status da carga
 
@@ -50,7 +50,7 @@ Ver também o [Diagrama de Casos de Uso](./diagrams/diagrama_de_caso_de_uso.webp
 **Cenário 01 — Cadastro com dados válidos**
 Dado que estou autenticado como administrador
 E acesso a tela de cadastro de produtos químicos
-Quando informo nome, classe de risco, unidade de medida e estado físico válidos
+Quando informo nome, número ONU, classe de risco, grupo de compatibilidade e estado físico válidos
 E confirmo o cadastro
 Então o sistema persiste o produto com status "Ativo"
 E exibe mensagem "Produto químico cadastrado com sucesso"
