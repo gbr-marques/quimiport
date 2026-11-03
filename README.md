@@ -47,9 +47,26 @@ As regras de negócio ficam no domínio da aplicação, os dados são persistido
 | Qualidade de código | [ESLint](https://eslint.org/) e [Prettier](https://prettier.io/) |
 | Execução em desenvolvimento | [tsx](https://tsx.is/) |
 
-A aplicação segue a **Arquitetura Hexagonal (Ports and Adapters)**. As decisões arquiteturais estão registradas em [Arquitetura e ADRs](./docs/06-arquitetura-e-adrs.md).
+## Decisões arquiteturais
+
+A aplicação segue a **Arquitetura Hexagonal (Ports and Adapters)**. O domínio e os casos de uso não dependem de framework nem de banco de dados: rotas, controllers e repositórios ficam na camada de infraestrutura, como adapters. A estrutura de pastas, as camadas e os diagramas estão em [Arquitetura e ADRs](./docs/06-arquitetura-e-adrs.md).
 
 O framework escolhido foi o **Express**, em vez de NestJS ou Fastify. Por ser minimalista, ele não impõe estrutura de módulos, decorators ou injeção de dependências, então a organização do projeto fica a cargo da Arquitetura Hexagonal. O Express fica restrito aos adapters de entrada (rotas e controllers), sem alcançar o domínio nem os casos de uso. A decisão completa está na [ADR-003](./docs/06-arquitetura-e-adrs.md#adr-003--backend-com-nodejs-e-express).
+
+As demais decisões estão registradas como ADRs:
+
+| ADR | Decisão |
+| --- | --- |
+| [ADR-001](./docs/06-arquitetura-e-adrs.md#adr-001--adoção-da-arquitetura-hexagonal) | Arquitetura Hexagonal |
+| [ADR-002](./docs/06-arquitetura-e-adrs.md#adr-002--uso-do-typescript) | TypeScript |
+| [ADR-005](./docs/06-arquitetura-e-adrs.md#adr-005--banco-de-dados-postgresql) | PostgreSQL (justificativa também em [Banco de dados](#banco-de-dados)) |
+| [ADR-006](./docs/06-arquitetura-e-adrs.md#adr-006--acesso-ao-banco-com-prisma) | Prisma, com o `schema.sql` como fonte da estrutura |
+| [ADR-007](./docs/06-arquitetura-e-adrs.md#adr-007--validação-de-entrada-com-zod-e-regras-no-domínio) | Zod nos adapters HTTP e regras de negócio no domínio |
+| [ADR-008](./docs/06-arquitetura-e-adrs.md#adr-008--logs-estruturados) | Logs estruturados com `requestId` |
+| [ADR-009](./docs/06-arquitetura-e-adrs.md#adr-009--documentação-da-api-com-openapi-e-swagger) | OpenAPI e Swagger UI |
+| [ADR-010](./docs/06-arquitetura-e-adrs.md#adr-010--containers-com-docker-e-docker-compose) | Docker multi-stage e Docker Compose |
+| [ADR-011](./docs/06-arquitetura-e-adrs.md#adr-011--testes-com-jest-e-cicd-com-github-actions) | Jest, Supertest e GitHub Actions |
+| [ADR-012](./docs/06-arquitetura-e-adrs.md#adr-012--consultas-graphql-como-diferencial) | Consultas GraphQL como diferencial |
 
 ## Como rodar o projeto
 
