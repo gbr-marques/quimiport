@@ -16,7 +16,7 @@ O **QuimiPort** é uma API REST para o gerenciamento de cargas químicas no port
 - Registrar o histórico de cada mudança de status, com autor, data e motivo;
 - Cadastrar os usuários que atuam como responsáveis técnicos e autores das operações.
 
-As regras de negócio ficam no domínio da aplicação, os dados são persistidos em PostgreSQL e os endpoints são documentados com Swagger.
+As regras de negócio ficam no domínio da aplicação, os dados são persistidos em PostgreSQL e os endpoints são documentados com Swagger. Como diferencial, a API também oferece [consultas GraphQL](#graphql-diferencial) sobre cargas e produtos químicos.
 
 ## Sumário
 
@@ -41,6 +41,7 @@ As regras de negócio ficam no domínio da aplicação, os dados são persistido
 | Banco de dados | [PostgreSQL](https://www.postgresql.org/) 17 |
 | ORM | [Prisma](https://www.prisma.io/) 6, com models espelhando o [database/schema.sql](./database/schema.sql) |
 | Validação de entrada | [Zod](https://zod.dev/) 4, restrito aos adapters HTTP |
+| GraphQL (diferencial) | [graphql-js](https://graphql.org/graphql-js/) 16 e [graphql-http](https://github.com/graphql/graphql-http) 1 |
 | Containers | [Docker](https://www.docker.com/) e Docker Compose |
 | Testes | [Jest](https://jestjs.io/) e [Supertest](https://github.com/ladjs/supertest) |
 | Qualidade de código | [ESLint](https://eslint.org/) e [Prettier](https://prettier.io/) |
@@ -232,6 +233,7 @@ A especificação fica em [`src/shared/infrastructure/http/openapi.ts`](./src/sh
 | | `PATCH /cargas-quimicas/:id/bloquear` | Bloqueia (exige `motivo`) |
 | | `PATCH /cargas-quimicas/:id/liberar` | Libera (exige documentação válida) |
 | | `PATCH /cargas-quimicas/:id/cancelar` | Cancela (exige `motivo`) |
+| GraphQL | `POST /graphql` (ou `GET`) | Consultas `cargasPorStatus` e `produtoQuimico` (veja [GraphQL](#graphql-diferencial)) |
 
 Como ainda não há autenticação, toda operação que altera uma carga recebe no corpo o campo obrigatório `autorId`, com o UUID do usuário que a executa. Ele é gravado no histórico da carga. Exemplo de registro:
 
@@ -249,6 +251,66 @@ POST /cargas-quimicas
   "autorId": "<id do usuário que registra a carga>"
 }
 ```
+
+## GraphQL (diferencial)
+
+Além da API REST, que continua sendo a API completa da aplicação, o endpoint `/graphql` oferece duas consultas somente leitura:
+
+| Consulta | Descrição |
+| --- | --- |
+| `cargasPorStatus(status, pagina, porPagina)` | Lista as cargas com o status informado, com paginação |
+| `produtoQuimico(id)` | Busca um produto químico pelo identificador |
+
+**Motivo da escolha:** o GraphQL foi escolhido em vez do gRPC porque as consultas atendem clientes como um painel web, que precisam escolher os campos de cada tela. O gRPC é mais indicado para comunicação entre serviços, cenário que ainda não existe no projeto.
+
+**Cenário de uso:** um painel de acompanhamento lista as cargas em inspeção e, para cada uma, mostra o status atual do produto no catálogo e as ações que o operador pode executar. Na API REST, isso exige uma chamada para listar as cargas e uma chamada por produto. No GraphQL, é uma única requisição, e o cliente recebe apenas os campos que pediu:
+
+```graphql
+{
+  cargasPorStatus(status: EM_INSPECAO) {
+    total
+    itens {
+      codigo
+      quantidade
+      unidadeMedida
+      transicoesPermitidas
+      produto { nome classeRisco }
+      produtoAtual { nome status }
+    }
+  }
+}
+```
+
+- `produto` traz os dados copiados no registro da carga (RN012), e `produtoAtual`, o produto como está hoje no catálogo. A diferença mostra, por exemplo, que o produto foi inativado depois do registro;
+- `transicoesPermitidas` lista os próximos status aceitos pela máquina de estados (RN010), lidos do mesmo mapa usado pelo domínio;
+- Cada produto é buscado uma única vez por consulta, mesmo que apareça em várias cargas.
+
+Exemplo com `curl`:
+
+```bash
+curl -X POST http://localhost:3000/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query":"{ cargasPorStatus(status: REGISTRADA) { total itens { codigo produtoAtual { nome status } } } }"}'
+```
+
+As consultas também podem ser executadas no Postman ou no Insomnia, que leem o schema do endpoint e completam os campos automaticamente.
+
+Os erros seguem o formato GraphQL, com o mesmo código e a mesma regra da API REST em `extensions`:
+
+```json
+{
+  "data": null,
+  "errors": [
+    {
+      "message": "Produto químico não encontrado",
+      "path": ["produtoQuimico"],
+      "extensions": { "codigo": "PRODUTO_QUIMICO_NAO_ENCONTRADO" }
+    }
+  ]
+}
+```
+
+O adapter fica em [`src/shared/infrastructure/graphql`](./src/shared/infrastructure/graphql) e chama os mesmos casos de uso da API REST, sem duplicar regras de negócio. A decisão está registrada na [ADR-012](./docs/06-arquitetura-e-adrs.md#adr-012--consultas-graphql-como-diferencial).
 
 ## Banco de dados
 
