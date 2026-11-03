@@ -103,7 +103,7 @@ export function novoCodigoCarga(): string {
   return `C-${randomUUID().replaceAll('-', '').slice(0, 24)}`;
 }
 
-function criarCpfValido(): string {
+export function criarCpfValido(): string {
   const digitos = randomUUID()
     .replace(/\D/g, '')
     .slice(0, 9)
