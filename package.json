@@ -1,8 +1,13 @@
 {
   "name": "quimiport",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "API backend do QuimiPort para gerenciamento de cargas químicas em contexto portuário",
+  "contributors": [
+    "Gabriel Marques Silva",
+    "Ionara Ferreira de Lima",
+    "Matheus Felipe Santos Pereira",
+    "Wender Santos Guimarães"
+  ],
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -30,10 +35,9 @@
     "@prisma/client": "^6.19.3",
     "express": "^5.3.0",
     "swagger-ui-express": "^5.0.1",
-    "zod": "^4.1.12"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
@@ -47,10 +51,8 @@
     "jest": "^30.0.0",
     "prettier": "^3.4.2",
     "prisma": "^6.19.3",
-    "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
-    "ts-node": "^10.9.2",
     "tsx": "^4.23.15",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
