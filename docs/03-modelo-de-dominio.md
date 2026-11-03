@@ -92,7 +92,7 @@ O modelo acima foi definido na Fase 1. Na Fase 2, parte dele foi implementada, c
 | Responsável Técnico | Entidade `Usuario` (`src/modules/usuarios/domain/entities`) | O responsável técnico é um usuário ativo com o cargo `RESPONSAVEL_TECNICO`. Atributos `id`, `nome`, `cpf`, `cargoProfissional`, `dataNascimento`, `senhaHash`, `status`, `criadoEm` e `atualizadoEm`. O CPF substitui o CRQ como identificador validado |
 | Evento | `EventoCarga` (`src/modules/cargas/domain/events`) | Atributos `tipo`, `statusAnterior`, `statusNovo`, `motivo`, `autorId` e `ocorridoEm`, gravados de forma imutável na tabela `historico_carga` |
 
-Documento Obrigatório, Risco, Classificação de Risco, Documento da Carga e Inspeção ainda não foram implementados. As tabelas `documentos_carga` e `inspecoes` já existem no banco, conforme a [Modelagem de dados](./09-modelagem-de-dados.md#12-como-os-dados-poderão-evoluir-nas-próximas-fases).
+Documento Obrigatório, Risco, Classificação de Risco, Documento da Carga e Inspeção ainda não foram implementados. As tabelas `documentos_carga` e `inspecoes` já existem no banco, conforme a [Modelagem de dados](./08-modelagem-de-dados.md#12-como-os-dados-poderão-evoluir-nas-próximas-fases).
 
 ### Value Objects implementados
 
