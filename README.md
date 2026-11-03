@@ -273,6 +273,8 @@ O modelo de dados, a máquina de estados da carga e a divisão das validações 
 | Integração (e2e) | `npm run test:e2e` | `test/api/*.e2e-spec.ts` | Um PostgreSQL com um banco de sufixo `_test` e o `database/schema.sql` aplicado |
 | Fumaça | `npm run test:smoke` | `scripts/smoke-test.mjs` | A API em execução (`BASE_URL`, padrão `http://localhost:3000`) |
 
+O `npm run test:cov` falha se a cobertura da camada de domínio de algum módulo ficar abaixo de 80%, como prevê a RNF004. A relação entre os cenários exigidos e os testes está no [Plano de qualidade](./docs/07-plano-de-qualidade.md#testes-automatizados-implementados-fase-2).
+
 Os testes e2e usam a URL de `DATABASE_URL_E2E` ou, na falta dela, a `DATABASE_URL` com o sufixo `_test` no nome do banco. Por segurança, recusam qualquer banco que não termine em `_test`. Com o banco do Docker em execução, o banco de teste é criado assim:
 
 ```bash
