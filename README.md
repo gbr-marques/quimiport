@@ -29,7 +29,7 @@ As regras de negócio ficam no domínio da aplicação, os dados são persistido
 7. [Requisitos não funcionais](./docs/04-casos-de-uso.md#2-requisitos-não-funcionais)
 8. [Arquitetura e ADRs](./docs/06-arquitetura-e-adrs.md)
 9. [Plano de qualidade](./docs/07-plano-de-qualidade.md)
-10. [Modelagem de dados](./docs/09-modelagem-de-dados.md)
+10. [Modelagem de dados](./docs/08-modelagem-de-dados.md)
 
 ## Tecnologias utilizadas
 
@@ -342,7 +342,7 @@ A escolha por um banco relacional considerou:
 
 O MongoDB foi descartado porque produtos e usuários são compartilhados por muitas cargas e as regras exigem integridade referencial e atomicidade entre carga e histórico, garantias que ficariam a cargo do código da aplicação.
 
-O modelo de dados, a máquina de estados da carga e a divisão das validações entre banco e domínio estão descritos em [Modelagem de dados](./docs/09-modelagem-de-dados.md).
+O modelo de dados, a máquina de estados da carga e a divisão das validações entre banco e domínio estão descritos em [Modelagem de dados](./docs/08-modelagem-de-dados.md).
 
 ## Testes
 
