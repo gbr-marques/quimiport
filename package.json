@@ -29,6 +29,8 @@
     "docker:down": "docker compose down",
     "docker:reset": "docker compose down -v && docker compose up -d --build",
     "docker:logs": "docker compose logs -f",
+    "docker:seed": "docker compose exec api node dist/shared/infrastructure/database/seed.js",
+    "db:seed": "tsx src/shared/infrastructure/database/seed.ts",
     "test": "jest --verbose"
   },
   "dependencies": {
