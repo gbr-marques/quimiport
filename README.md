@@ -2,15 +2,34 @@
 
 Repositório destinado à entrega do Tech Challenge do curso de pós-graduação em Desenvolvimento Fullstack, e evolução da solução nas próximas fases.
 
+## Contexto do problema
+
+O Porto de Santos é um dos principais pontos de movimentação de cargas do Brasil, e parte dessas cargas são produtos químicos que exigem documentação adequada, classificação de risco e acompanhamento técnico. Hoje, o registro dessas cargas costuma ser feito de forma manual ou descentralizada, o que dificulta a consulta de informações, o acompanhamento do status e a validação das regras de segurança.
+
+## Descrição da solução
+
+O **QuimiPort** é uma API REST para o gerenciamento de cargas químicas no porto. Nesta fase, a API permite:
+
+- Cadastrar, consultar, atualizar e inativar produtos químicos;
+- Registrar e consultar cargas químicas, associadas a um produto químico ativo e a um responsável técnico;
+- Atualizar o status da carga, bloqueá-la, liberá-la ou cancelá-la, conforme a máquina de estados definida nas regras de negócio;
+- Registrar o histórico de cada mudança de status, com autor, data e motivo;
+- Cadastrar os usuários que atuam como responsáveis técnicos e autores das operações.
+
+As regras de negócio ficam no domínio da aplicação, os dados são persistidos em PostgreSQL e os endpoints são documentados com Swagger.
+
 ## Sumário
 
 1. [Contexto do problema](./docs/01-dominio-e-problema.md)
-2. [Usuários do sistema](./docs/02-linguagem-ubiqua.md)
-3. [Linguagem ubíqua](./docs/03-modelo-de-dominio.md)
-4. [Entidades e Value Objects (DDD)](./04-docs/casos-de-uso.md)
-5. [Casos de uso (BDD)](./docs/05-regras-de-negocio.md)
-6. [Regras de negócio](./docs/06-arquitetura-e-adrs.md)
-7. [Requisitos não funcionais](./docs/07-plano-de-qualidade.md)
+2. [Usuários do sistema](./docs/01-dominio-e-problema.md#2-usuários-do-sistema)
+3. [Linguagem ubíqua](./docs/02-linguagem-ubiqua.md)
+4. [Entidades e Value Objects (DDD)](./docs/03-modelo-de-dominio.md)
+5. [Casos de uso (BDD)](./docs/04-casos-de-uso.md)
+6. [Regras de negócio](./docs/05-regras-de-negocio.md)
+7. [Requisitos não funcionais](./docs/04-casos-de-uso.md#2-requisitos-não-funcionais)
+8. [Arquitetura e ADRs](./docs/06-arquitetura-e-adrs.md)
+9. [Plano de qualidade](./docs/07-plano-de-qualidade.md)
+10. [Modelagem de dados](./docs/09-modelagem-de-dados.md)
 
 ## Tecnologias utilizadas
 
@@ -28,6 +47,8 @@ Repositório destinado à entrega do Tech Challenge do curso de pós-graduação
 | Execução em desenvolvimento | [tsx](https://tsx.is/) |
 
 A aplicação segue a **Arquitetura Hexagonal (Ports and Adapters)**. As decisões arquiteturais estão registradas em [Arquitetura e ADRs](./docs/06-arquitetura-e-adrs.md).
+
+O framework escolhido foi o **Express**, em vez de NestJS ou Fastify. Por ser minimalista, ele não impõe estrutura de módulos, decorators ou injeção de dependências, então a organização do projeto fica a cargo da Arquitetura Hexagonal. O Express fica restrito aos adapters de entrada (rotas e controllers), sem alcançar o domínio nem os casos de uso. A decisão completa está na [ADR-003](./docs/06-arquitetura-e-adrs.md#adr-003--backend-com-nodejs-e-express).
 
 ## Como rodar o projeto
 
@@ -65,6 +86,8 @@ Em ambos os casos, a API fica disponível em http://localhost:3000.
    DATABASE_URL=postgresql://quimiport:quimiport@localhost:5432/quimiport?schema=public
    ```
 
+   Cada variável está descrita em [Variáveis de ambiente](#variáveis-de-ambiente).
+
 3. Suba o banco de dados. A forma mais simples é subir apenas o container do banco:
 
    ```bash
@@ -95,6 +118,20 @@ Em ambos os casos, a API fica disponível em http://localhost:3000.
 # Deve responder {"status":"ok"}
 curl http://localhost:3000/health
 ```
+
+#### Variáveis de ambiente
+
+| Variável | Obrigatória | Descrição |
+| --- | --- | --- |
+| `NODE_ENV` | Não | Ambiente de execução. Padrão: `development` |
+| `PORT` | Não | Porta em que a API responde. Padrão: `3000` |
+| `DATABASE_URL` | Sim | URL de conexão com o PostgreSQL, usada pela API e pelo Prisma |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Não | Usuário, senha e banco criados pelo container do PostgreSQL no Docker Compose. Padrão: `quimiport` |
+| `DATABASE_URL_E2E` | Não | URL do banco usado pelos testes e2e. Se ausente, os testes usam a `DATABASE_URL` com o sufixo `_test` no nome do banco (veja [Testes](#testes)) |
+| `BASE_URL` | Não | Endereço da API usado pelo teste de fumaça. Padrão: `http://localhost:3000` |
+| `NO_COLOR` | Não | Se definida, desativa as cores dos logs no terminal |
+
+O arquivo `.env` é lido automaticamente na inicialização da API e não deve ser versionado.
 
 #### Scripts disponíveis
 
@@ -212,6 +249,19 @@ POST /cargas-quimicas
   "autorId": "<id do usuário que registra a carga>"
 }
 ```
+
+## Banco de dados
+
+A aplicação utiliza o **PostgreSQL 17**, acessado por meio do Prisma ORM. O script [database/schema.sql](./database/schema.sql) cria as tabelas `usuarios`, `produtos_quimicos`, `cargas_quimicas`, `historico_carga`, `documentos_carga` e `inspecoes`, e o [prisma/schema.prisma](./prisma/schema.prisma) espelha esse script.
+
+A escolha por um banco relacional considerou:
+
+- **Tipo de dado:** usuários, produtos e cargas têm estrutura fixa, com campos tipados (texto, decimal, data e valores enumerados). A quantidade da carga usa `numeric`, sem erros de arredondamento;
+- **Relacionamentos:** toda carga referencia um produto e um responsável técnico, e o histórico pertence a uma carga e a um autor. As chaves estrangeiras impedem que uma carga aponte para um produto ou usuário inexistente;
+- **Consistência:** a mudança de status e o registro no histórico são gravados na mesma transação. Enums, CHECKs e triggers reforçam no banco os status válidos, a quantidade positiva e a imutabilidade do histórico;
+- **Evolução futura:** novas funcionalidades, como autenticação com perfis e anexo de documentos, entram como novas tabelas e chaves estrangeiras, sem reestruturar os dados existentes.
+
+O MongoDB foi descartado porque produtos e usuários são compartilhados por muitas cargas e as regras exigem integridade referencial e atomicidade entre carga e histórico, garantias que ficariam a cargo do código da aplicação.
 
 O modelo de dados, a máquina de estados da carga e a divisão das validações entre banco e domínio estão descritos em [Modelagem de dados](./docs/09-modelagem-de-dados.md).
 
