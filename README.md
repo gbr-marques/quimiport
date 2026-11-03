@@ -163,6 +163,7 @@ O arquivo `.env` é lido automaticamente na inicialização da API e não deve s
 | `npm run test:e2e` | Executa os testes end-to-end (veja [Testes](#testes)) |
 | `npm run test:cov` | Executa os testes com relatório de cobertura |
 | `npm run test:smoke` | Executa o teste de fumaça contra a API em execução |
+| `npm run db:seed` | Cadastra os dados de exemplo no banco (veja [Dados de exemplo](#dados-de-exemplo)) |
 | `npm run lint` | Analisa e corrige o código com ESLint |
 | `npm run lint:ci` | Analisa o código sem corrigir, como no pipeline de CI |
 | `npm run format` | Formata o código com Prettier |
@@ -217,6 +218,34 @@ docker exec quimiport-db psql -U quimiport -c "\dt"
 | `docker compose down` | `npm run docker:down` | Para e remove os containers. Os dados do banco são mantidos |
 | `docker compose down -v` | — | Para os containers e apaga os dados do banco |
 | `docker compose down -v && docker compose up -d --build` | `npm run docker:reset` | Recria o banco do zero. Necessário após alterar o `schema.sql`, que só é executado com o banco vazio |
+| `docker compose exec api node dist/shared/infrastructure/database/seed.js` | `npm run docker:seed` | Cadastra os dados de exemplo (veja [Dados de exemplo](#dados-de-exemplo)) |
+
+### Dados de exemplo
+
+Para testar a API sem cadastrar tudo à mão, o projeto tem um seed com dados de exemplo. Com o banco no ar, execute:
+
+```bash
+# Rodando localmente (usa a DATABASE_URL do .env)
+npm run db:seed
+
+# Rodando via Docker (executa dentro do container da API)
+npm run docker:seed
+```
+
+O seed passa pelos mesmos casos de uso da API, então os dados respeitam as regras de negócio e cada mudança de status fica registrada no histórico. Ele pode ser executado mais de uma vez: se os dados já existirem, nada é feito.
+
+| Tipo | Dados cadastrados |
+| --- | --- |
+| Usuários | Ana Ribeiro e Carlos Mendes (responsáveis técnicos), Beatriz Lima (operadora, sem o cargo exigido para cargas) e Diego Alves (responsável técnico inativo). Senha de todos: `senhaForte123` |
+| Produtos químicos | Hidróxido de Sódio, Acetona, Metanol, Amônia Anidra e Nitrato de Amônio (ativos) e Benzeno (inativo) |
+| Cargas químicas | `CG-DEMO-001` a `CG-DEMO-008`, uma em cada status: Registrada, Em Análise, Em Inspeção, Liberada, Em Movimentação, Finalizada, Bloqueada e Cancelada |
+
+Alguns registros servem para demonstrar regras de negócio:
+
+- registrar uma carga com o Benzeno é recusado, porque o produto está inativo (RN003);
+- registrar uma carga com a Beatriz ou o Diego como responsável é recusado (RN009);
+- liberar a `CG-DEMO-003` é recusado, porque ela não tem documentação válida (RN007);
+- movimentar ou liberar a `CG-DEMO-007` é recusado, porque ela está bloqueada (RN005).
 
 ## Documentação da API
 
