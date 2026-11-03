@@ -2,7 +2,7 @@
 
 **Sistema:** Gestão de Cargas Químicas Portuárias  
 **Contexto:** Tech Challenge Fase 2 — Pós Tech Full Stack Development  
-**Documentos relacionados:** QuimiPort - Regras de Negócio (v1.3), QuimiPort - Épicos e Histórias de Usuário (v1.3), QuimiPort - Regras de Negócio Não Implementadas (v1.2)  
+**Documentos relacionados:** [Regras de negócio](./05-regras-de-negocio.md), [Casos de uso](./04-casos-de-uso.md), [Arquitetura e ADRs](./06-arquitetura-e-adrs.md)  
 **Versão:** 1.3
 
 ---
